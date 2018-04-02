@@ -84,7 +84,7 @@ Anecdotal evidence from the web that people use image mirroring to trick compute
 
 For the sake of simplicity of the analysis, we will assume that our images are comprised of pixels with grayscale values scaled to the 
 range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, again to map the internal features of a neural network (NN) to the range of values $[-1, +1]$. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$.
-Finally, we shall not use any biases in any neuron in the system. Denoting the inputs to layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
+Finally, we shall not use any biases in any neuron in the system. Denoting the outputs from layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
 \be
 z^{(n+1)}_i = g\left(\sum_j w^n_{i, j} z^{(n)}_j\right)
 \; ,
@@ -110,13 +110,14 @@ a black background. The geometric contrast is exactly the same, and so we would 
 
 One can test this empirically (add link to gist online demonstrating this in python), and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
 
-Under the inversion symmetry, $x_i \rightarrow - x_i$, since every neuron, at every layer but the final softmax layer is odd in its 
-input, under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
+Under the inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer is odd in its 
+input. Therefore under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
 \be
 {\tilde p}_{\alpha} \rightarrow \exp\left[ - \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = 1/{\tilde p}_{\alpha}
 \; .
 \ee
-The un-normalized probabilities are inverted. For any given image, the class probabilities are all inverted, and the digit the model thinks has the highest probability to match the image, now becomes the digit with the lowest probability to match the image. Every image for which the model would identify the digit correctly, would identify it incorrectly for the inverted image.
+The un-normalized probabilities are inverted. For any given image in the original dataset, the digit the model thinks has the highest probability to match the image, is also the digit with the lowest probability to match the inverted image. For every image the model identifies correctly, the inverted image
+gets identified incorrectly.
 
 Let us divide the original sample set into two subsets - one for which the model correctly identifies the digit $A$, and $B$ for the remainig samples for which the model identifies the wrong digit. The accuracy rate of the model over this dataset is 
 \be
@@ -162,7 +163,7 @@ f_a({\bf x}) = A^{(0)} + \sum_i A^{(1)}_i x_i + \sum_{i, j} A^{(2)}_{i, j} x_i x
 \ee
 The feature maps that are invariant under the inversion symmetry are those functions even in the inputs $x_i$ - only the even power terms are allowed.
 \be
-f_a({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i \neq j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
+f_a({\bf x}) = A^{(0)} +  \sum_{i \neq j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
 \; ,
 \ee
 where the indices in each sum are all unique. 
