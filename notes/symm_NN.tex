@@ -1,0 +1,279 @@
+\documentclass[twocolumn, prl]{revtex4-1}
+\usepackage[pdftex]{graphicx}
+\usepackage{subfig}
+\usepackage{amsmath}
+
+\begin{document}
+
+\newcommand{\trp}{^{\scriptsize \text{T}}}
+\newcommand{\itp}{^{\scriptsize -\text{T}}}
+\newcommand{\sqrtp}{^{\scriptsize \text{T/2}}}
+\newcommand{\isqrtp}{^{\scriptsize -\text{T/2}}}
+\newcommand{\inv}{^{\scriptsize -1}}
+\newcommand{\sqr}{^{\scriptsize \text{1/2}}}
+\newcommand{\invsqr}{^{\scriptsize -\text{1/2}}}
+
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+
+
+\title{Symmetry constrained machine learning}
+\date{\today}
+
+\author{Doron L. Bergman}
+\affiliation{Opendoor Inc.}
+\email[E-mail me at: ]{doronator@gmail.com}
+
+\begin{abstract}
+Symmetries, a central concept in our understanding of the laws of nature, has been used for centuries in 
+physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a 2-layer neural network for classifying handwritten digits. We demonstrate that ignoring symmetries can have dire overfitting consequences, and that incorporating symmetries into the model reduces overfitting, while at the same time reducing the complexity of the model, ultimately requiring less training data, and taking less time and resources to train.
+\end{abstract}
+
+\maketitle
+
+
+\section{Introduction}
+\label{Sec:Intro}
+
+
+cite Pedro Domingos
+
+IDEA!
+
+6 and 9 are 180 degrees rotation of each other. Using full rotational symmetry would erase the distinction between them. But a symmetry breaking term would easily differentiate between them - even just one feature.
+
+Another IDEA!
+
+ConvNets have a clumsy form of translational invariance - ther eis a boundary. So the actual translational invariance we take is smaller than the full translational invariance on a 2-torus, and more complicated to implement and think about. So, we propose to use the full 2-torus translation inavariance first, and then apply a small symmetry breaking which will constitute the boundary of the images. Does this even matter?
+
+
+
+
+Symmetry, together with understanding the relevant microscopic degrees of freedom and interactions, are the core ingredients behind our understanding of condensed matter physics.
+
+
+The power of symmetry can be demonstrated in the following simple example. Diffusion is observed to tend to homogenize the density of one material mixing with another. Therefore, the simplest model is of the form
+\be
+\partial_t \rho = F(\nabla \rho)
+\ee
+The LHS is invariant under spherical symmetry, so should the RHS, and therfore
+symmetry alone now dictates that F be of the form $F = - D \nabla^2 \rho + \ldots$.
+The negative sign is determined by the fact that we expect density to decrease in those areas where it is higher.
+
+
+In statistics and computerscience, traiditonally there has been little use of symmetry
+
+
+The greatest danger to machine learning methods is overfitting.
+
+The physics approach to overfitting has been to build a more constrained theory, with as few free parameters as possible. The statistics community has not had that luxury, and so they have attacked the overfitting problem with various methods.
+
+Even some forms of approximate symmetry have been uncovered recently - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggest natural languages have an approximate permutation invariance. This may explain why bag of word methods are as successful as they are!
+
+Later...
+
+Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
+
+% https://www.quora.com/Do-videos-with-reversed-image-frames-avoid-watermark-detection-by-YouTubes-copyright-identification-system
+
+% https://www.reddit.com/r/todayilearned/comments/hqq6k/til_you_can_flipmirror_a_youtube_video_to/
+
+\section{Theory}
+\subsection{Initial NN model}
+\label{Sec:dumb_NN}
+
+For the sake of simplicity of the analysis, we will assume that our images are comprised of pixels with grayscale values scaled to the 
+range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, again to map the internal features of a neural network (NN) to the range of values $[-1, +1]$. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$.
+Finally, we shall not use any biases in any neuron in the system. Denoting the inputs to layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
+\be
+z^{(n+1)}_i = g\left(\sum_j w^n_{i, j} z^{(n)}_j\right)
+\; ,
+\ee
+where $g(z)$ in our case is $\tanh$.
+The first input layer takes in the image pixels $z^0_i = x_i$. For classifying the digits, a final softmax layer produces 10 outputs which are the normalized probabilities for the image to be any one of the 10 digits
+\be
+p_{\alpha} = P(y=\alpha | x) \sim \exp\left[ \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = {\tilde p}_{\alpha}
+\ee
+with the normalization
+\be
+p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
+\; .
+\ee
+
+\subsection{Issues with symmetry}
+
+As demonstrated here (link...), the NN model above, with just $N=2$ layers, can achieve rather high classification accuracy of the 10 digits.
+It is trained on an image dataset of black digits on a white background, with the first layer trained as a restricted Boltzmann machine, and the softmax layer trained as a simple logistic classifier.
+
+However, let us challenge the system. Consider the images with the black/white colors inverted, such that the digits are now white on 
+a black background. The geometric contrast is exactly the same, and so we would hope that a good machine learning system captures the geometric features of the digit themselves, and would be able to handle the inverted colors case well.
+
+One can test this empirically (add link to gist online demonstrating this in python), and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
+
+Under the inversion symmetry, $x_i \rightarrow - x_i$, since every neuron, at every layer but the final softmax layer is odd in its 
+input, under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
+\be
+{\tilde p}_{\alpha} \rightarrow \exp\left[ - \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = 1/{\tilde p}_{\alpha}
+\; .
+\ee
+The un-normalized probabilities are inverted. For any given image, the class probabilities are all inverted, and the digit the model thinks has the highest probability to match the image, now becomes the digit with the lowest probability to match the image. Every image for which the model would identify the digit correctly, would identify it incorrectly for the inverted image.
+
+Let us divide the original sample set into two subsets - one for which the model correctly identifies the digit $A$, and $B$ for the remainig samples for which the model identifies the wrong digit. The accuracy rate of the model over this dataset is 
+\be
+R = \frac{|A|}{|A| + |B|}
+\; .
+\ee
+All the images in $A$, when inverted, will yield the wrong digit from the model. Denoting the subset of the images for which the model identifies the digit correctly on the inverted image as ${\bar A}$, and the remaining as ${\bar B}$, we note that $A \subseteq {\bar B}$. The accuracy of the model on the inverted images is then
+\be
+{\bar R} = \frac{|{\bar A}|}{|{\bar A}| + |{\bar B}|} = 1 - \frac{|{\bar B}|}{|{\bar A}| + |{\bar B}|} \leq 1 - R
+\; .
+\ee
+Written more symmetrically as $R + {\bar R} \leq 1$ this demonstrates that the accuracy over the original dataset directly constrains the accuracy that can be had on the inverted images. If the original model is accurate more than half the time over this dataset, $R>0.5$, then ${\bar R} \leq 1 - R < 0.5$. Higher accuracy on the original dataset comes directly at the expense of accuracy on the inverted images. 
+
+This is not a very happy state of affairs. 
+
+Our conclusion is that the system is overfitting, and rather than learning the important geometric features defining the digits, it is learning features peculiar to their images in black on a white background.
+
+A model such as the one we are considering here would usually be trained on the original dataset, with only black digits on a white background. Once confronted with the reality of poor performance on the inverted images, a common approach is to simply add the additional manipulated samples to the training dataset.
+
+However given the demonstrated $R + {\bar R} \leq 1$ constraint, if the training fully converges onto the best model, then that would suggest 
+the constraint is saturated at $R + {\bar R} = 1$, and if the images and the inverted images are given equal weight in determining the model, one would expect $R = {\bar R} = 0.5$, a rather limited ceiling on the potential accuracy of the model.
+
+\subsubsection{Does the bias matter?}
+
+Will re-introducing the bias terms save the NN model?
+
+\subsection{A model incorporating symmetry}
+\label{Sec:smart_rbm}
+
+What if we could construct the system to begin with to have the inversion symmetry built in to the model?
+The simplest way to do this is to map the inputs (the pixels of the image) $x_i$ onto features that are invariant under the inversion symmetry.
+Let us consider a generic smooth feature mapping. It can be expanded in a Taylor series
+\be
+f_a({\bf x}) = \sum_{n_1, n_2, \ldots} A^{(a)}_{n_1, n_2, \ldots} x_1^{n_1} x_2^{n_2} \ldots
+\; .
+\ee
+
+As a significant simplification, let us assume that all the inputs have the extreme values $\pm 1$ - just black or white, with no shades of gray in the image. The inputs then satisfy the algebra $x_i^2 = 1$, and the general Taylor expansion simplifies to the so-called 
+interaction terms
+\be
+f_a({\bf x}) = A^{(0)} + \sum_i A^{(1)}_i x_i + \sum_{i, j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k} A^{(3)}_{i, j, k} x_i x_j x_k + \ldots
+\; .
+\ee
+The feature maps that are invariant under the inversion symmetry are those functions even in the inputs $x_i$ - only the even power terms are allowed.
+\be
+f_a({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i \neq j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
+\; ,
+\ee
+where the indices in each sum are all unique. 
+The lowest order feature maps that are non-trivial are the quadratic maps
+\be
+f_a({\bf x}) = A^{(0)} +  \sum_{i \neq j} A^{(2)}_{i, j} x_i x_j
+\; .
+\ee
+
+If instead of the $x_i$ inputs, we fed the inversion symmetry invariant features $\chi_{i,j} = x_i x_j$ into the NN model, we would already know that the classification is perfectly invariant under the inversion symmetry.
+
+However, given $x_{1 \ldots M}$ pixels, the number of $\chi_{i,j}$ features is $M(M-1)/2$, a far larger number of features to the NN model. The comparison is not fair - there would be many more free parameters using these features than in the original model. Generally a model with more free parameters can better fit a given dataset, albeit with an increased danger of overfitting.
+To level the playing field we will choose a subset of the possible features with a similar number of free parameters
+\be
+\chi_i =  x_i x_{i + {\hat e}_1}
+\; ,
+\ee
+where $i + {\hat e}_1$ denotes the pixel immediately to the right of the pixel $i$, and the sum over $i$ is implicitly restricted to those pixels that are not on the right edge of the image. The products $x_i x_{i + {\hat e}_1}$ contain information similar to a gradient of the image pixels since it is +1 when the pixels are of the same color, and -1 if they are different. If we were to look at an image made up of the $\chi_i$ features, it would show the boundaries between the black and white regions of the original image. Restricting just to this subset of features, we start out providing fewer features to the model, since there are only $M - \sqrt{M}$  features $\chi_i$ (assuming square images).
+
+We proceed to test the two different models.
+
+\subsubsection{What if we re-introduce the biases?}
+
+\subsubsection{are these features handpicked to work nicely?}
+
+They are somewhat translationally invariant!
+
+\section{Numerical experiment}
+\label{Sec:experiments}
+
+
+\subsection{Interim conclusion}
+
+What we learn from the analysis above is that we can always engineer features that are symmetry invariant, and simply feed those into an otherwise oblivious machine learning model.
+
+
+
+The first symmetry that has been widely incorporated into machine learning models is a limited degree of translational symmetry, in the form of convolutional neural networks, and there are some very recent attempts at incorporating a limited form of rotational symmetry into computer vision systems as well (cite...). These symmetries have to be incorporated in a complex way into the machine learning models, since the symmetries aren't perfect. An image has a boundary, which ruins the perfect translational invariance. Using pixels makes continuous rotations of the image difficult to express. Finally, some features of the images are explicitly not invariant under rotations - an image of the digit 6 under a 180 degrees rotation, becomes the digit 9.
+
+If the image were a continuous field, rather than a matrix of pixels, that would make expressing rotations much simpler. If the image had no boundary, but rather had periodic boundary conditions in both the horizontal and vertical direction, it would live on a 2-torus, and have perfect translational invariance.
+
+In theoretical physics, perfect symmetries are used all the time, despite the fact that there too symmetries are rarely perfect. In the case of calculating the electronic band structure in a crystalline solid, one almost always assumes periodic boundary conditions to perform the calculations. The justification is that for a macroscopic solid, the boundary involves a rather minute fraction of the atoms, and therefore has a negligible effect. 
+The 2 body gravitational problem used to understand the orbit of the Earth around the sun, is assumed to have perfect spherical symmetry, and then it can be solved in closed form. This however neglects the presence of the moon, and other planets, which disrupts the spherical symmetry. However there are methods to deal with this difficulty as well. The standard Physics approach is to assume as much symmetry as you can to simplify the problem, and then add the symmetry breaking elements as perturbations to the perfectly symmetric solvable problem. 
+
+Inspired by the approach to imperfect symmetry in Physics, we shall advocate for a similar approach in machine learning models. Instead of the complex approach of ConvNets to imperfect translational invariance of images, we shall assume perfect translational invariance in a "zero order model", and add a relatively small number of features breaking the symmetry, as perturbations to the model.
+
+As a concrete example, consider a grayscale image parameterized by a scalar field $\phi({\bf x})$. Let us construct features with perfect translational invariance
+
+... zero momentum terms...
+\be
+F_0 = A^{(0)} + A^{(1)} \sum_{\bf x} \phi({\bf x}) + \sum_{\bf a} A^{(2)}_{\bf a} \sum_{\bf x} \phi({\bf x}) \phi({\bf x} + {\bf a})
+ + \sum_{\bf a, b} A^{(3)}_{\bf a, b} \sum_{\bf x} \phi({\bf x}) \phi({\bf x} + {\bf a})  \phi({\bf x} + {\bf b}) + \ldots
+\ee
+
+Perturbation
+\be
+F_1 = B \sum_{\text{boundary}} \phi({\bf x})
+\ee
+The idea here is that if the boundary is all white, then you can translate the image a bit, and the boundary sum will remain the same. It will only change when the digit starts overlapping with the boundary. Those are the only cases we want to avoid predicting - when the image crosses the boundary.
+
+Let us also incorporate the 180 degree rotation that maps 6 to 9, in addition to the translation symmetry. 
+The precise origin of the coordinate system for the pixels does not matter, so we pick it to be at the center of the image.
+Then, the rotation about the center of the image transforms the grayscale image as 
+\be
+\phi({\bf x}) \rightarrow \phi(-{\bf x})
+\; .
+\ee
+One can see immediately that an additional constraint must be satisfied by the $F_0$ features for invariance under the 180 rotation.
+\be
+A^{(2)}_{\bf a} = A^{(2)}_{- {\bf a}}
+\; .
+\ee
+This can be easily expressed by changing $F_0$ a bit
+\be
+F_0 = A^{(0)} + A^{(1)} \sum_{\bf x} \phi({\bf x}) + \sum_{\bf a} A^{(2)}_{\bf a} \sum_{\bf x} \phi({\bf x}) 
+\left[ \phi({\bf x} + {\bf a}) + \phi({\bf x} - {\bf a}) \right]
+\ldots
+\ee
+
+A model using these features should be trained against labels where 6 and 9 are treated as the same. An additional, much smaller 
+machine learning system can then be employed, with additional features that explicitly break the rotation symmetry, to distinguish 
+between 6 and 9.
+
+
+An image has a boundary, which ruins the perfect translational invariance a scalar field has on the 2-torus.
+
+
+ images comprised of pixels have a grid structure
+
+
+
+\section{Conclusions}
+\label{Sec:Conclusions}
+
+Later
+
+\section{Acknowledgements}
+
+The author would like to thank Miles Stoudenmire, Daniel Malinow, ... 
+for feedback on the ideas presented in this manuscript.
+
+
+\vskip -0.2in
+
+%\bibliography{A-D,E-H,I-L,M-O,P-S,T-Z}
+\bibliographystyle{plainnat}
+\bibliography{petro_bib}
+%\bibliographystyle{TUPREP}
+
+
+
+\vskip 0.2in
+
+\end{document}
