@@ -21,19 +21,19 @@
 \date{\today}
 
 \author{Doron L. Bergman}
-\affiliation{Opendoor Inc.}
+\affiliation{MEGA LLC}
 \email[E-mail me at: ]{doronator@gmail.com}
 
 \begin{abstract}
 Symmetries, a central concept in our understanding of the laws of nature, has been used for centuries in 
-physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a 2-layer neural network for classifying handwritten digits. We demonstrate that ignoring symmetries can have dire overfitting consequences, and that incorporating symmetries into the model reduces overfitting, while at the same time reducing the complexity of the model, ultimately requiring less training data, and taking less time and resources to train.
+physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a neural network for classifying handwritten digits. We demonstrate that ignoring symmetries can have dire overfitting consequences, and that incorporating symmetries into the model reduces overfitting, while at the same time reducing the complexity of the model, ultimately requiring less training data, and taking less time and resources to train.
 \end{abstract}
 
 \maketitle
 
 
-\section{Introduction}
-\label{Sec:Intro}
+\section{ideas}
+\label{Sec:Ideas}
 
 
 cite Pedro Domingos
@@ -48,25 +48,29 @@ ConvNets have a clumsy form of translational invariance - ther eis a boundary. S
 
 
 
+\section{Introduction}
+\label{Sec:Intro}
 
-Symmetry, together with understanding the relevant microscopic degrees of freedom and interactions, are the core ingredients behind our understanding of condensed matter physics.
+Symmetry, together with understanding the relevant microscopic degrees of freedom and interactions, are the core ingredients behind our understanding of many body systems in the physical world.
 
+\emph{need to cut or fix this section}
 
 The power of symmetry can be demonstrated in the following simple example. Diffusion is observed to tend to homogenize the density of one material mixing with another. Therefore, the simplest model is of the form
 \be
 \partial_t \rho = F(\nabla \rho)
 \ee
-The LHS is invariant under spherical symmetry, so should the RHS, and therfore
-symmetry alone now dictates that F be of the form $F = - D \nabla^2 \rho + \ldots$.
+The LHS is invariant under spherical symmetry, so should the RHS, and therefore
+symmetry alone now dictates that F be of the form $F = - D \nabla^2 \rho + \ldots$ with $D>0$
 The negative sign is determined by the fact that we expect density to decrease in those areas where it is higher.
 
 
-In statistics and computerscience, traiditonally there has been little use of symmetry
+In statistics and computer science, traditionally there has been little use of symmetry
 
 
-The greatest danger to machine learning methods is overfitting.
+The greatest danger to machine learning methods is over-fitting.
 
-The physics approach to overfitting has been to build a more constrained theory, with as few free parameters as possible. The statistics community has not had that luxury, and so they have attacked the overfitting problem with various methods.
+
+The physics approach to over-fitting has been to build a more constrained theory, with as few free parameters as possible. The statistics community has not had that luxury, and so they have attacked the over-fitting problem with various methods.
 
 Even some forms of approximate symmetry have been uncovered recently - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggest natural languages have an approximate permutation invariance. This may explain why bag of word methods are as successful as they are!
 
@@ -102,6 +106,8 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 
 \subsection{Issues with symmetry}
 
+{\bf TODO: demonstrate that NN without biases can get very high accuracy on just the original dataset. Do so both with 2-layer RBM+logistic system, and on more general NN with multiple layers}
+
 As demonstrated here (link...), the NN model above, with just $N=2$ layers, can achieve rather high classification accuracy of the 10 digits.
 It is trained on an image dataset of black digits on a white background, with the first layer trained as a restricted Boltzmann machine, and the softmax layer trained as a simple logistic classifier.
 
@@ -133,7 +139,15 @@ Written more symmetrically as $R + {\bar R} \leq 1$ this demonstrates that the a
 
 This is not a very happy state of affairs. 
 
+The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitessimaly small, the upper limit on the accuracy can be only infinitessimally larger than in the vanishing biases case.
+
+The standard approach in the machine learning community at present would be to train the model on both the original dataset, and the inverted copy of the dataset. If care is taken to avoid overfitting, and learn the right features of the dataset, then the model should enjoy high accuracy. From our empirical attempt we find that doing so may be challenging.
+{\bf TODO: show poor performance when training on both halfs of the dataset}
 Our conclusion is that the system is overfitting, and rather than learning the important geometric features defining the digits, it is learning features peculiar to their images in black on a white background.
+
+Let us consider an alternative approach, where rather than re-introducing the biases, we change the features we feed to the model. In particular, let us choose features that are invariant under the inversion symmetry.
+
+{\bf TODO: needs revision from here}
 
 A model such as the one we are considering here would usually be trained on the original dataset, with only black digits on a white background. Once confronted with the reality of poor performance on the inverted images, a common approach is to simply add the additional manipulated samples to the training dataset.
 

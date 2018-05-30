@@ -1,0 +1,8 @@
+*.pyc
+.idea*
+*.aux
+*.log
+*.pdf
+*.gz
+src/__pycache__/
+*.bib
