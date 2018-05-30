@@ -24,7 +24,8 @@ Logistic regression on raw pixel values is presented for comparison. The
 example shows that the features extracted by the BernoulliRBM help improve the
 classification accuracy.
 """
-from src.nueral_network_sans_bias import BernoulliRBMSansBias
+# from src.nueral_network_sans_bias import BernoulliRBMSansBias
+from src.simple_constrained_rbm import ConstrainedBernoulliRBM
 
 print(__doc__)
 
@@ -88,7 +89,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y,
 # Models we will use
 logistic = linear_model.LogisticRegression(fit_intercept=False)
 # rbm = BernoulliRBM(random_state=0, verbose=True)
-rbm = BernoulliRBMSansBias(random_state=0, verbose=True, use_intercepts=False)
+rbm = ConstrainedBernoulliRBM(random_state=0, verbose=True, fit_intercepts=False)
 
 
 classifier = Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
