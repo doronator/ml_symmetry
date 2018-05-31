@@ -26,54 +26,18 @@ classification accuracy.
 """
 # from src.nueral_network_sans_bias import BernoulliRBMSansBias
 from src.simple_constrained_rbm import ConstrainedBernoulliRBM
-
-print(__doc__)
-
-# Authors: Yann N. Dauphin, Vlad Niculae, Gabriel Synnaeve
-# License: BSD
+from src.utils import nudge_dataset
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from scipy.ndimage import convolve
 from sklearn import linear_model, datasets, metrics
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.neural_network import BernoulliRBM
 from sklearn.pipeline import Pipeline
 
 
 # #############################################################################
 # Setting up
-
-def nudge_dataset(X, Y):
-    """
-    This produces a dataset 5 times bigger than the original one,
-    by moving the 8x8 images in X around by 1px to left, right, down, up
-    """
-    direction_vectors = [
-        [[0, 1, 0],
-         [0, 0, 0],
-         [0, 0, 0]],
-
-        [[0, 0, 0],
-         [1, 0, 0],
-         [0, 0, 0]],
-
-        [[0, 0, 0],
-         [0, 0, 1],
-         [0, 0, 0]],
-
-        [[0, 0, 0],
-         [0, 0, 0],
-         [0, 1, 0]]]
-
-    shift = lambda x, w: convolve(x.reshape((8, 8)), mode='constant',
-                                  weights=w).ravel()
-    X = np.concatenate([X] +
-                       [np.apply_along_axis(shift, 1, X, vector)
-                        for vector in direction_vectors])
-    Y = np.concatenate([Y for _ in range(5)], axis=0)
-    return X, Y
 
 # Load Data
 digits = datasets.load_digits()

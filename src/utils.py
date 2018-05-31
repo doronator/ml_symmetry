@@ -34,11 +34,18 @@ def nudge_dataset(X, Y):
     return X, Y
 
 
-def plot_sample(x):
+def plot_sample(x, img_size=(8, 8)):
     plt.figure(figsize=(4.2, 4))
-    plt.imshow(x.reshape((8, 8)), cmap=plt.cm.gray_r,
+    plt.imshow(x.reshape(img_size), cmap=plt.cm.gray_r,
                interpolation='nearest')
     plt.xticks(())
     plt.yticks(())
 
     plt.show()
+
+def inversion_symmetric_features(X, image_shape=(8,8)):
+    n_samples, n_features = X.shape
+    assert n_features==image_shape[0]*image_shape[1]
+    _X = X.reshape(n_samples, *image_shape)
+    result = _X*np.roll(_X, shift=-1, axis=2)
+    return result.reshape(n_samples, n_features)
