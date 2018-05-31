@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 
 from scipy.ndimage import convolve
 from sklearn import linear_model, datasets, metrics
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import BernoulliRBM
 from sklearn.pipeline import Pipeline
 
@@ -91,8 +91,8 @@ logistic = linear_model.LogisticRegression(fit_intercept=False)
 # rbm = BernoulliRBM(random_state=0, verbose=True)
 rbm = ConstrainedBernoulliRBM(random_state=0, verbose=True, fit_intercepts=False)
 
-
-classifier = Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
+# classifier = Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
+pipe = Pipeline(steps=[('rbm', rbm), ('logistic', logistic)])
 
 # #############################################################################
 # Training
@@ -106,6 +106,18 @@ rbm.n_iter = 20
 # fitting time
 rbm.n_components = 100
 logistic.C = 6000.0
+
+param_grid = {
+    "rbm__fit_intercepts": [True],
+    "rbm__learning_rate": [0.01, 0.03, 0.06, 0.09, 0.2],
+    "rbm__n_iter": [20],
+    "rbm__n_components" : [100],
+    "logistic__fit_intercept": [True],
+    # "logistic__C": [6000],
+    "logistic__C": [1000, 3000, 6000, 9000],
+}
+
+classifier = GridSearchCV(pipe, cv=5, n_jobs=1, param_grid=param_grid)
 
 # Training RBM-Logistic Pipeline
 classifier.fit(X_train, Y_train)
@@ -131,8 +143,14 @@ print("Logistic regression using raw pixel features:\n%s\n" % (
 # #############################################################################
 # Plotting
 
+print("best params:")
+print(classifier.best_params_)
+exit()
+
+temp = classifier.best_estimator_.named_steps['rbm'].components_
+
 plt.figure(figsize=(4.2, 4))
-for i, comp in enumerate(rbm.components_):
+for i, comp in enumerate(temp):
     plt.subplot(10, 10, i + 1)
     plt.imshow(comp.reshape((8, 8)), cmap=plt.cm.gray_r,
                interpolation='nearest')
