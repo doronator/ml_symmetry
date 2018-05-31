@@ -5,14 +5,6 @@
 
 \begin{document}
 
-\newcommand{\trp}{^{\scriptsize \text{T}}}
-\newcommand{\itp}{^{\scriptsize -\text{T}}}
-\newcommand{\sqrtp}{^{\scriptsize \text{T/2}}}
-\newcommand{\isqrtp}{^{\scriptsize -\text{T/2}}}
-\newcommand{\inv}{^{\scriptsize -1}}
-\newcommand{\sqr}{^{\scriptsize \text{1/2}}}
-\newcommand{\invsqr}{^{\scriptsize -\text{1/2}}}
-
 \newcommand{\be}{\begin{equation}}
 \newcommand{\ee}{\end{equation}}
 
@@ -25,64 +17,47 @@
 \email[E-mail me at: ]{doronator@gmail.com}
 
 \begin{abstract}
-Symmetries, a central concept in our understanding of the laws of nature, has been used for centuries in 
-physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a neural network for classifying handwritten digits. We demonstrate that ignoring symmetries can have dire overfitting consequences, and that incorporating symmetries into the model reduces overfitting, while at the same time reducing the complexity of the model, ultimately requiring less training data, and taking less time and resources to train.
+Symmetry, a central concept in understanding the laws of nature, has been used for centuries in physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a neural network for classifying handwritten digits, lacking bias terms for every neuron. We demonstrate that ignoring symmetries can have dire over-fitting consequences, and that incorporating symmetry into the model reduces over-fitting, while at the same time reducing complexity, ultimately requiring less training data, and taking less time and resources to train.
 \end{abstract}
 
 \maketitle
 
 
-\section{ideas}
-\label{Sec:Ideas}
-
-
-cite Pedro Domingos
-
-IDEA!
-
-6 and 9 are 180 degrees rotation of each other. Using full rotational symmetry would erase the distinction between them. But a symmetry breaking term would easily differentiate between them - even just one feature.
-
-Another IDEA!
-
-ConvNets have a clumsy form of translational invariance - ther eis a boundary. So the actual translational invariance we take is smaller than the full translational invariance on a 2-torus, and more complicated to implement and think about. So, we propose to use the full 2-torus translation inavariance first, and then apply a small symmetry breaking which will constitute the boundary of the images. Does this even matter?
-
-
-
 \section{Introduction}
 \label{Sec:Intro}
 
+% symmetry is awesome in physics!
+
 Symmetry, together with understanding the relevant microscopic degrees of freedom and interactions, are the core ingredients behind our understanding of many body systems in the physical world.
 
-\emph{need to cut or fix this section}
+% symmetry has not been used in ML much
 
-The power of symmetry can be demonstrated in the following simple example. Diffusion is observed to tend to homogenize the density of one material mixing with another. Therefore, the simplest model is of the form
-\be
-\partial_t \rho = F(\nabla \rho)
-\ee
-The LHS is invariant under spherical symmetry, so should the RHS, and therefore
-symmetry alone now dictates that F be of the form $F = - D \nabla^2 \rho + \ldots$ with $D>0$
-The negative sign is determined by the fact that we expect density to decrease in those areas where it is higher.
+In statistics and computer science, traditionally there has been little use of symmetry. The recent emergence of convolutional neural networks applied to computer vision\cite{lecun1999object, lecun1990handwritten, lecun1998gradient, krizhevsky2012imagenet, lee2009convolutional, lecun2015deep}, where translational symmetry of images is used to constrain the form of neural network models, is a first demonstration of the vast potential in building symmetries into machine learning models.
+
+% symmetry can help in ML too!
+
+One of the prime challenges for any sufficiently rich model is over-fitting. The physics approach to over-fitting has been to build a more constrained theory, with as few free parameters as possible. The statistics community has not had that luxury, and so they have attacked the over-fitting problem with various methods. Symmetry provides a fruitful avenue to constrain rich models, eliminating superfluous free parameters. By lowering the number of free parameters, models are not only less prone to over-fitting, they also require less data to train, and can be trained and run predictions faster.
+
+% can we find enough symmetry in ML?
+
+There are many obvious symmetries in vision problems - translation, rotations, and mirror images - essentially most portions of affine transformations\cite{gens2014deep, dieleman2016exploiting, cohen2016group, henriques2016warped}. Even some forms of approximate symmetry exist\cite{kiddonsymmetry} - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggests natural languages have an approximate word permutation invariance. This may explain why bag of word methods are often successful, despite not retaining the full information about the word order. 
+%It is the author's belief that many symmetries may be hiding in various machine learning applications, they simply need to be thought about carefully.
+
+% Symmetry for all ... ML models
+Given the benefits of combining symmetry into machine learning models, it would be useful to have a simple way to incorporate symmetries into any machine learning model. In this paper we address this problem. In short, if inputs are transformed into features that are invariant under the full symmetry group, then the model outputs will automatically be invariant as well. Are we missing any information in this way? No. Any feature that is not invariant under symmetries of the system, will spoil the model invariance, at least for some set of weights. A successful symmetry invariant feature map will be a truncated set of features that suffices to capture enough of the information to make the model successful.
+
+% paper outline
+In order to demonstrate the importance and power of symmetry invariant feature maps, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In section~\ref{Sec:theory}, we describe the toy model we work with to demonstrate our ideas. In section~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementation of symmetry invariant feature maps. Finally we close with some closing remarks in section~\ref{Sec:conclusions}.
 
 
-In statistics and computer science, traditionally there has been little use of symmetry
-
-
-The greatest danger to machine learning methods is over-fitting.
-
-
-The physics approach to over-fitting has been to build a more constrained theory, with as few free parameters as possible. The statistics community has not had that luxury, and so they have attacked the over-fitting problem with various methods.
-
-Even some forms of approximate symmetry have been uncovered recently - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggest natural languages have an approximate permutation invariance. This may explain why bag of word methods are as successful as they are!
-
-Later...
-
-Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
+%Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
 
 % https://www.quora.com/Do-videos-with-reversed-image-frames-avoid-watermark-detection-by-YouTubes-copyright-identification-system
 
 % https://www.reddit.com/r/todayilearned/comments/hqq6k/til_you_can_flipmirror_a_youtube_video_to/
 
 \section{Theory}
+\label{Sec:theory}
 \subsection{Initial NN model}
 \label{Sec:dumb_NN}
 
@@ -206,7 +181,7 @@ We proceed to test the two different models.
 They are somewhat translationally invariant!
 
 \section{Numerical experiment}
-\label{Sec:experiments}
+\label{Sec:empirics}
 
 
 \subsection{Interim conclusion}
@@ -270,7 +245,7 @@ An image has a boundary, which ruins the perfect translational invariance a scal
 
 
 \section{Conclusions}
-\label{Sec:Conclusions}
+\label{Sec:conclusions}
 
 Later
 
@@ -284,7 +259,7 @@ for feedback on the ideas presented in this manuscript.
 
 %\bibliography{A-D,E-H,I-L,M-O,P-S,T-Z}
 \bibliographystyle{plainnat}
-\bibliography{petro_bib}
+\bibliography{NN_bib}
 %\bibliographystyle{TUPREP}
 
 
@@ -292,3 +267,24 @@ for feedback on the ideas presented in this manuscript.
 \vskip 0.2in
 
 \end{document}
+
+
+
+
+
+\section{ideas}
+\label{Sec:Ideas}
+
+
+cite Pedro Domingos
+
+IDEA!
+
+6 and 9 are 180 degrees rotation of each other. Using full rotational symmetry would erase the distinction between them. But a symmetry breaking term would easily differentiate between them - even just one feature.
+
+Another IDEA!
+
+ConvNets have a clumsy form of translational invariance - ther eis a boundary. So the actual translational invariance we take is smaller than the full translational invariance on a 2-torus, and more complicated to implement and think about. So, we propose to use the full 2-torus translation inavariance first, and then apply a small symmetry breaking which will constitute the boundary of the images. Does this even matter?
+
+
+
