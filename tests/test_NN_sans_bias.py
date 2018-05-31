@@ -20,7 +20,12 @@ def test_constrained_NN():
     zero_to_four_range = (z+1)*2
     y = np.floor(zero_to_four_range).astype(int)
 
-    model = ConstrainedMLPClassifier(solver='lbfgs', alpha=1e-5, activation='tanh', hidden_layer_sizes=(15,), random_state = 1)
+    model = ConstrainedMLPClassifier(solver='lbfgs',
+                                     alpha=1e-5,
+                                     activation='tanh',
+                                     hidden_layer_sizes=(15,),
+                                     random_state = 1,
+                                     fit_intercepts=False)
     model.fit(X, y)
 
     # probabilities should change in a predictable way on the
@@ -38,7 +43,7 @@ def test_constrained_NN():
 
     actual = model.predict_proba(-X)
 
-    # np.testing.assert_allclose(actual=actual, desired=desired, rtol=1e-6, atol=1e-7)
+    np.testing.assert_allclose(actual=actual, desired=desired, rtol=1e-6, atol=1e-7)
 
 
 if __name__=='__main__':

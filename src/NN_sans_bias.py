@@ -28,9 +28,12 @@ from sklearn.utils.multiclass import type_of_target
 _STOCHASTIC_SOLVERS = ['sgd', 'adam']
 
 
-def _pack(coefs_, intercepts_):
+def _pack(coefs_, intercepts_=None):
     """Pack the parameters into a single vector."""
-    return np.hstack([l.ravel() for l in coefs_ + intercepts_])
+    if intercepts_ is None:
+        return np.hstack([l.ravel() for l in coefs_])
+    else:
+        return np.hstack([l.ravel() for l in coefs_ + intercepts_])
 
 
 class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstimator)):
@@ -47,7 +50,8 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
                  alpha, batch_size, learning_rate, learning_rate_init, power_t,
                  max_iter, loss, shuffle, random_state, tol, verbose,
                  warm_start, momentum, nesterovs_momentum, early_stopping,
-                 validation_fraction, beta_1, beta_2, epsilon):
+                 validation_fraction, beta_1, beta_2, epsilon,
+                 fit_intercepts):
         self.activation = activation
         self.solver = solver
         self.alpha = alpha
@@ -70,6 +74,7 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.epsilon = epsilon
+        self.fit_intercepts = fit_intercepts
 
     def _unpack(self, packed_parameters):
         """Extract the coefficients and intercepts from packed_parameters."""
@@ -77,8 +82,9 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
             start, end, shape = self._coef_indptr[i]
             self.coefs_[i] = np.reshape(packed_parameters[start:end], shape)
 
-            start, end = self._intercept_indptr[i]
-            self.intercepts_[i] = packed_parameters[start:end]
+            if self.fit_intercepts:
+                start, end = self._intercept_indptr[i]
+                self.intercepts_[i] = packed_parameters[start:end]
 
     def _forward_pass(self, activations):
         """Perform a forward pass on the network by computing the values
@@ -99,7 +105,8 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
         for i in range(self.n_layers_ - 1):
             activations[i + 1] = safe_sparse_dot(activations[i],
                                                  self.coefs_[i])
-            activations[i + 1] += self.intercepts_[i]
+            if self.fit_intercepts:
+                activations[i + 1] += self.intercepts_[i]
 
             # For the hidden layers
             if (i + 1) != (self.n_layers_ - 1):
@@ -112,7 +119,7 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
         return activations
 
     def _compute_loss_grad(self, layer, n_samples, activations, deltas,
-                           coef_grads, intercept_grads):
+                           coef_grads, intercept_grads=None):
         """Compute the gradient of loss with respect to coefs and intercept for
         specified layer.
 
@@ -123,12 +130,14 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
         coef_grads[layer] += (self.alpha * self.coefs_[layer])
         coef_grads[layer] /= n_samples
 
-        intercept_grads[layer] = np.mean(deltas[layer], 0)
-
-        return coef_grads, intercept_grads
+        if self.fit_intercepts:
+            intercept_grads[layer] = np.mean(deltas[layer], 0)
+            return coef_grads, intercept_grads
+        else:
+            return coef_grads, None
 
     def _loss_grad_lbfgs(self, packed_coef_inter, X, y, activations, deltas,
-                         coef_grads, intercept_grads):
+                         coef_grads, intercept_grads=None):
         """Compute the MLP loss function and its corresponding derivatives
         with respect to the different parameters given in the initialization.
 
@@ -174,11 +183,14 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
         loss, coef_grads, intercept_grads = self._backprop(
             X, y, activations, deltas, coef_grads, intercept_grads)
         self.n_iter_ += 1
-        grad = _pack(coef_grads, intercept_grads)
+        if self.fit_intercepts:
+            grad = _pack(coef_grads, intercept_grads)
+        else:
+            grad = _pack(coef_grads, None)
         return loss, grad
 
     def _backprop(self, X, y, activations, deltas, coef_grads,
-                  intercept_grads):
+                  intercept_grads=None):
         """Compute the MLP loss function and its corresponding derivatives
         with respect to each parameter: weights and bias vectors.
 
@@ -252,7 +264,10 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
                 i - 1, n_samples, activations, deltas, coef_grads,
                 intercept_grads)
 
-        return loss, coef_grads, intercept_grads
+        if self.fit_intercepts:
+            return loss, coef_grads, intercept_grads
+        else:
+            return loss, coef_grads, None
 
     def _initialize(self, y, layer_units):
         # set all attributes, allocate weights etc for first call
@@ -276,13 +291,16 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
 
         # Initialize coefficient and intercept layers
         self.coefs_ = []
-        self.intercepts_ = []
+        ### TODO: try this out
+        if self.fit_intercepts:
+            self.intercepts_ = []
 
         for i in range(self.n_layers_ - 1):
             coef_init, intercept_init = self._init_coef(layer_units[i],
                                                         layer_units[i + 1])
             self.coefs_.append(coef_init)
-            self.intercepts_.append(intercept_init)
+            if self.fit_intercepts:
+                self.intercepts_.append(intercept_init)
 
         if self.solver in _STOCHASTIC_SOLVERS:
             self.loss_curve_ = []
@@ -309,7 +327,10 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
                                                (fan_in, fan_out))
         intercept_init = self._random_state.uniform(-init_bound, init_bound,
                                                     fan_out)
-        return coef_init, intercept_init
+        if self.fit_intercepts:
+            return coef_init, intercept_init
+        else:
+            return coef_init, None
 
     def _fit(self, X, y, incremental=False):
         # Make sure self.hidden_layer_sizes is a list
@@ -365,8 +386,11 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
                       n_fan_out_ in zip(layer_units[:-1],
                                         layer_units[1:])]
 
-        intercept_grads = [np.empty(n_fan_out_) for n_fan_out_ in
-                           layer_units[1:]]
+        if self.fit_intercepts:
+            intercept_grads = [np.empty(n_fan_out_) for n_fan_out_ in
+                               layer_units[1:]]
+        else:
+            intercept_grads = None
 
         # Run the Stochastic optimization solver
         if self.solver in _STOCHASTIC_SOLVERS:
@@ -442,15 +466,19 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
             self._coef_indptr.append((start, end, (n_fan_in, n_fan_out)))
             start = end
 
-        # Save sizes and indices of intercepts for faster unpacking
-        for i in range(self.n_layers_ - 1):
-            end = start + layer_units[i + 1]
-            self._intercept_indptr.append((start, end))
-            start = end
+        if self.fit_intercepts:
+            # Save sizes and indices of intercepts for faster unpacking
+            for i in range(self.n_layers_ - 1):
+                end = start + layer_units[i + 1]
+                self._intercept_indptr.append((start, end))
+                start = end
 
         # Run LBFGS
-        packed_coef_inter = _pack(self.coefs_,
-                                  self.intercepts_)
+        if self.fit_intercepts:
+            packed_coef_inter = _pack(self.coefs_,
+                                      self.intercepts_)
+        else:
+            packed_coef_inter = _pack(self.coefs_)
 
         if self.verbose is True or self.verbose >= 1:
             iprint = 1
@@ -514,7 +542,10 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
                                                       batch_slice.start)
 
                     # update weights
-                    grads = coef_grads + intercept_grads
+                    if self.fit_intercepts:
+                        grads = coef_grads + intercept_grads
+                    else:
+                        grads = coef_grads
                     self._optimizer.update_params(grads)
 
                 self.n_iter_ += 1
@@ -564,7 +595,10 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
         if early_stopping:
             # restore best weights
             self.coefs_ = self._best_coefs
-            self.intercepts_ = self._best_intercepts
+            if self.fit_intercepts:
+                self.intercepts_ = self._best_intercepts
+            else:
+                self.intercepts_ = None
 
     def _update_no_improvement_count(self, early_stopping, X_val, y_val):
         if early_stopping:
@@ -587,8 +621,11 @@ class BaseConstrainedMultilayerPerceptron(six.with_metaclass(ABCMeta, BaseEstima
             if last_valid_score > self.best_validation_score_:
                 self.best_validation_score_ = last_valid_score
                 self._best_coefs = [c.copy() for c in self.coefs_]
-                self._best_intercepts = [i.copy()
-                                         for i in self.intercepts_]
+                if self.fit_intercepts:
+                    self._best_intercepts = [i.copy()
+                                             for i in self.intercepts_]
+                else:
+                    self._best_intercepts = None
         else:
             if self.loss_curve_[-1] > self.best_loss_ - self.tol:
                 self._no_improvement_count += 1
@@ -886,7 +923,7 @@ class ConstrainedMLPClassifier(BaseConstrainedMultilayerPerceptron, ClassifierMi
                  verbose=False, warm_start=False, momentum=0.9,
                  nesterovs_momentum=True, early_stopping=False,
                  validation_fraction=0.1, beta_1=0.9, beta_2=0.999,
-                 epsilon=1e-8):
+                 epsilon=1e-8, fit_intercepts=True):
 
         sup = super(ConstrainedMLPClassifier, self)
         sup.__init__(hidden_layer_sizes=hidden_layer_sizes,
@@ -899,7 +936,8 @@ class ConstrainedMLPClassifier(BaseConstrainedMultilayerPerceptron, ClassifierMi
                      nesterovs_momentum=nesterovs_momentum,
                      early_stopping=early_stopping,
                      validation_fraction=validation_fraction,
-                     beta_1=beta_1, beta_2=beta_2, epsilon=epsilon)
+                     beta_1=beta_1, beta_2=beta_2, epsilon=epsilon,
+                     fit_intercepts=fit_intercepts)
 
     def _validate_input(self, X, y, incremental):
         X, y = check_X_y(X, y, accept_sparse=['csr', 'csc', 'coo'],
@@ -1261,9 +1299,9 @@ class ConstrainedMLPRegressor(BaseConstrainedMultilayerPerceptron, RegressorMixi
                  verbose=False, warm_start=False, momentum=0.9,
                  nesterovs_momentum=True, early_stopping=False,
                  validation_fraction=0.1, beta_1=0.9, beta_2=0.999,
-                 epsilon=1e-8):
+                 epsilon=1e-8, fit_intercepts=True):
 
-        sup = super(MLPRegressor, self)
+        sup = super(ConstrainedMLPRegressor, self)
         sup.__init__(hidden_layer_sizes=hidden_layer_sizes,
                      activation=activation, solver=solver, alpha=alpha,
                      batch_size=batch_size, learning_rate=learning_rate,
@@ -1274,7 +1312,8 @@ class ConstrainedMLPRegressor(BaseConstrainedMultilayerPerceptron, RegressorMixi
                      nesterovs_momentum=nesterovs_momentum,
                      early_stopping=early_stopping,
                      validation_fraction=validation_fraction,
-                     beta_1=beta_1, beta_2=beta_2, epsilon=epsilon)
+                     beta_1=beta_1, beta_2=beta_2, epsilon=epsilon,
+                     fit_intercepts=fit_intercepts)
 
     def predict(self, X):
         """Predict using the multi-layer perceptron model.
