@@ -108,11 +108,11 @@ rbm.n_components = 100
 logistic.C = 6000.0
 
 param_grid = {
-    "rbm__fit_intercepts": [True],
+    "rbm__fit_intercepts": [False],
     "rbm__learning_rate": [0.01, 0.03, 0.06, 0.09, 0.2],
     "rbm__n_iter": [20],
     "rbm__n_components" : [100],
-    "logistic__fit_intercept": [True],
+    "logistic__fit_intercept": [False],
     # "logistic__C": [6000],
     "logistic__C": [1000, 3000, 6000, 9000],
 }
