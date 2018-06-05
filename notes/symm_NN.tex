@@ -58,17 +58,17 @@ In order to demonstrate the importance and power of symmetry invariant feature m
 
 \section{Theory}
 \label{Sec:theory}
-\subsection{Initial NN model}
+\subsection{Neural network model}
 \label{Sec:dumb_NN}
 
-For the sake of simplicity of the analysis, we will assume that our images are comprised of pixels with grayscale values scaled to the 
-range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, again to map the internal features of a neural network (NN) to the range of values $[-1, +1]$. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$.
-Finally, we shall not use any biases in any neuron in the system. Denoting the outputs from layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
+In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset available with the scikit-learn python machine learning library.
+
+For the sake of simplicity, we will assume that our images are comprised of pixels with grayscale values scaled to the range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, thus mapping the internal features of a neural network (NN) to the range of values $[-1, +1]$ as well. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$. Finally, we shall not use any biases in any neuron in the system. Denoting the outputs from layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
 \be
 z^{(n+1)}_i = g\left(\sum_j w^n_{i, j} z^{(n)}_j\right)
 \; ,
 \ee
-where $g(z)$ in our case is $\tanh$.
+where $g(z)$ in our case is $\tanh(z)$.
 The first input layer takes in the image pixels $z^0_i = x_i$. For classifying the digits, a final softmax layer produces 10 outputs which are the normalized probabilities for the image to be any one of the 10 digits
 \be
 p_{\alpha} = P(y=\alpha | x) \sim \exp\left[ \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = {\tilde p}_{\alpha}
@@ -81,26 +81,27 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 
 \subsection{Issues with symmetry}
 
-{\bf TODO: demonstrate that NN without biases can get very high accuracy on just the original dataset. Do so both with 2-layer RBM+logistic system, and on more general NN with multiple layers}
+{\bf TODO: demonstrate that NN without biases can get very high accuracy on just the original dataset.}
 
-As demonstrated here (link...), the NN model above, with just $N=2$ layers, can achieve rather high classification accuracy of the 10 digits.
-It is trained on an image dataset of black digits on a white background, with the first layer trained as a restricted Boltzmann machine, and the softmax layer trained as a simple logistic classifier.
+As demonstrated here {\bf (link...)}, the NN model above, with just $N=2$ layers, can achieve rather high classification accuracy of the 10 digits.
+It is trained on UCI ML hand-written digits dataset available with the scikit-learn python machine learning library\cite{} of roughly black digits on a white background.
 
-However, let us challenge the system. Consider the images with the black/white colors inverted, such that the digits are now white on 
-a black background. The geometric contrast is exactly the same, and so we would hope that a good machine learning system captures the geometric features of the digit themselves, and would be able to handle the inverted colors case well.
+We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow \infty$. As long as the the images are majority white $\sum_i x_i > 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x+i \right)\approx 1$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
 
-One can test this empirically (add link to gist online demonstrating this in python), and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
+Next, let us challenge the system. Consider the images with the grayscale inverted, such that the digits are now roughly white on 
+a black background. The inverted images still represent the same digits - the grayscale inversion transformation is therefore a symmetry of the problem. The geometric contrast is exactly the same, and so we would hope that a good machine learning system captures the geometric features of the digit themselves, and would be able to handle the inverted colors case well.
 
-Under the inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer is odd in its 
+One can test this empirically {\bf (add link to gist online demonstrating this in python)}, and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
+
+Under the grayscale inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer is odd in its 
 input. Therefore under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
 \be
 {\tilde p}_{\alpha} \rightarrow \exp\left[ - \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = 1/{\tilde p}_{\alpha}
 \; .
 \ee
-The un-normalized probabilities are inverted. For any given image in the original dataset, the digit the model thinks has the highest probability to match the image, is also the digit with the lowest probability to match the inverted image. For every image the model identifies correctly, the inverted image
-gets identified incorrectly.
+The un-normalized probabilities are inverted. For any given image in the original dataset, the digit the model thinks has the highest probability to match the image, is also the digit with the lowest probability to match the inverted image. For every image the model identifies correctly, the inverted image gets identified incorrectly.
 
-Let us divide the original sample set into two subsets - one for which the model correctly identifies the digit $A$, and $B$ for the remainig samples for which the model identifies the wrong digit. The accuracy rate of the model over this dataset is 
+Let us divide the original sample set into two subsets - one for which the model correctly identifies the digit $A$, and $B$ for the remaining samples for which the model identifies the wrong digit. The accuracy rate of the model over this dataset is 
 \be
 R = \frac{|A|}{|A| + |B|}
 \; .
@@ -110,31 +111,21 @@ All the images in $A$, when inverted, will yield the wrong digit from the model.
 {\bar R} = \frac{|{\bar A}|}{|{\bar A}| + |{\bar B}|} = 1 - \frac{|{\bar B}|}{|{\bar A}| + |{\bar B}|} \leq 1 - R
 \; .
 \ee
-Written more symmetrically as $R + {\bar R} \leq 1$ this demonstrates that the accuracy over the original dataset directly constrains the accuracy that can be had on the inverted images. If the original model is accurate more than half the time over this dataset, $R>0.5$, then ${\bar R} \leq 1 - R < 0.5$. Higher accuracy on the original dataset comes directly at the expense of accuracy on the inverted images. 
-
-This is not a very happy state of affairs. 
-
-The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitessimaly small, the upper limit on the accuracy can be only infinitessimally larger than in the vanishing biases case.
-
-The standard approach in the machine learning community at present would be to train the model on both the original dataset, and the inverted copy of the dataset. If care is taken to avoid overfitting, and learn the right features of the dataset, then the model should enjoy high accuracy. From our empirical attempt we find that doing so may be challenging.
-{\bf TODO: show poor performance when training on both halfs of the dataset}
-Our conclusion is that the system is overfitting, and rather than learning the important geometric features defining the digits, it is learning features peculiar to their images in black on a white background.
-
-Let us consider an alternative approach, where rather than re-introducing the biases, we change the features we feed to the model. In particular, let us choose features that are invariant under the inversion symmetry.
-
-{\bf TODO: needs revision from here}
+Written more symmetrically as $R + {\bar R} \leq 1$ this demonstrates that the accuracy over the original dataset directly constrains the accuracy that can be had on the inverted images. If the original model is accurate more than half the time over this dataset, $R>0.5$, then ${\bar R} \leq 1 - R < 0.5$. Higher accuracy on the original dataset comes directly at the expense of accuracy on the inverted images.
 
 A model such as the one we are considering here would usually be trained on the original dataset, with only black digits on a white background. Once confronted with the reality of poor performance on the inverted images, a common approach is to simply add the additional manipulated samples to the training dataset.
 
 However given the demonstrated $R + {\bar R} \leq 1$ constraint, if the training fully converges onto the best model, then that would suggest 
 the constraint is saturated at $R + {\bar R} = 1$, and if the images and the inverted images are given equal weight in determining the model, one would expect $R = {\bar R} = 0.5$, a rather limited ceiling on the potential accuracy of the model.
 
-\subsubsection{Does the bias matter?}
+This is not a very happy state of affairs. 
 
-Will re-introducing the bias terms save the NN model?
+The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitesimally small, the upper limit on the accuracy can be only infinitesimally larger than in the vanishing biases case $R + {\bar R} \leq 1 + O(\epsilon)$.
 
-\subsection{A model incorporating symmetry}
-\label{Sec:smart_rbm}
+In the next section, we consider an alternative approach, where rather than re-introducing the biases, we change the features we feed to the model. In particular, we choose features that are invariant under the inversion symmetry.
+
+\subsection{Incorporating symmetry}
+\label{Sec:symmetry_invariant_features}
 
 What if we could construct the system to begin with to have the inversion symmetry built in to the model?
 The simplest way to do this is to map the inputs (the pixels of the image) $x_i$ onto features that are invariant under the inversion symmetry.
@@ -144,41 +135,31 @@ f_a({\bf x}) = \sum_{n_1, n_2, \ldots} A^{(a)}_{n_1, n_2, \ldots} x_1^{n_1} x_2^
 \; .
 \ee
 
-As a significant simplification, let us assume that all the inputs have the extreme values $\pm 1$ - just black or white, with no shades of gray in the image. The inputs then satisfy the algebra $x_i^2 = 1$, and the general Taylor expansion simplifies to the so-called 
-interaction terms
+The feature maps that are invariant under the inversion symmetry are those functions even in the inputs $x_i$ - only the even power terms are allowed
 \be
-f_a({\bf x}) = A^{(0)} + \sum_i A^{(1)}_i x_i + \sum_{i, j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k} A^{(3)}_{i, j, k} x_i x_j x_k + \ldots
+f_a({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
 \; .
 \ee
-The feature maps that are invariant under the inversion symmetry are those functions even in the inputs $x_i$ - only the even power terms are allowed.
-\be
-f_a({\bf x}) = A^{(0)} +  \sum_{i \neq j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
-\; ,
-\ee
-where the indices in each sum are all unique. 
 The lowest order feature maps that are non-trivial are the quadratic maps
 \be
 f_a({\bf x}) = A^{(0)} +  \sum_{i \neq j} A^{(2)}_{i, j} x_i x_j
 \; .
 \ee
 
-If instead of the $x_i$ inputs, we fed the inversion symmetry invariant features $\chi_{i,j} = x_i x_j$ into the NN model, we would already know that the classification is perfectly invariant under the inversion symmetry.
+If instead of the $x_i$ inputs, we fed the inversion symmetry invariant features $\chi_{i,j} = x_i x_j$ into the NN model, we would enforce the classification to be perfectly invariant under the inversion symmetry.
 
-However, given $x_{1 \ldots M}$ pixels, the number of $\chi_{i,j}$ features is $M(M-1)/2$, a far larger number of features to the NN model. The comparison is not fair - there would be many more free parameters using these features than in the original model. Generally a model with more free parameters can better fit a given dataset, albeit with an increased danger of overfitting.
+However, given $x_{1 \ldots M}$ pixels, the number of $\chi_{i,j}$ features is $M(M+1)/2$, a far larger number of features than the $M$ features $x_i$. Using the same neural network architecture with a much larger number of input features is not a fair comparison - there would be many more free parameters using these features than in the original model. Generally a model with more free parameters can better fit a given dataset, albeit with an increased danger of over-fitting.
 To level the playing field we will choose a subset of the possible features with a similar number of free parameters
 \be
 \chi_i =  x_i x_{i + {\hat e}_1}
 \; ,
 \ee
-where $i + {\hat e}_1$ denotes the pixel immediately to the right of the pixel $i$, and the sum over $i$ is implicitly restricted to those pixels that are not on the right edge of the image. The products $x_i x_{i + {\hat e}_1}$ contain information similar to a gradient of the image pixels since it is +1 when the pixels are of the same color, and -1 if they are different. If we were to look at an image made up of the $\chi_i$ features, it would show the boundaries between the black and white regions of the original image. Restricting just to this subset of features, we start out providing fewer features to the model, since there are only $M - \sqrt{M}$  features $\chi_i$ (assuming square images).
+where $i + {\hat e}_1$ denotes the pixel immediately to the right of the pixel $i$. For the edge pixels, we wrap the the index arithmetic around the boundaries of the image, essentially acting as if it were wrapped around a cylinder. The products $x_i x_{i + {\hat e}_1}$ contain information similar to a gradient of the image pixels since when both pixels are pure black or pure white, the product is +1, and when they are opposite black and white colors, it is -1. If the image were made of only extreme grayscale values - only black and white, an image made up of the $\chi_i$ features, would show the boundaries between the black and white regions of the original image.
 
 We proceed to test the two different models.
 
-\subsubsection{What if we re-introduce the biases?}
 
-\subsubsection{are these features handpicked to work nicely?}
-
-They are somewhat translationally invariant!
+{\bf DONE TILL HERE}
 
 \section{Numerical experiment}
 \label{Sec:empirics}
