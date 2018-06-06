@@ -8,3 +8,6 @@ src/__pycache__/
 *.bbl
 *.blg
 notes/symm_NNNotes.bib
+*.dvi
+.ipynb_checkpoints/
+*digit_6.png

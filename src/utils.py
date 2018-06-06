@@ -41,8 +41,6 @@ def plot_sample(x, img_size=(8, 8)):
     plt.xticks(())
     plt.yticks(())
 
-    plt.show()
-
 def inversion_symmetric_features(X, image_shape=(8,8)):
     n_samples, n_features = X.shape
     assert n_features==image_shape[0]*image_shape[1]
