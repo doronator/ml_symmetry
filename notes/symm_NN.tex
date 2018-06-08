@@ -82,9 +82,7 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 
 \subsection{Issues with symmetry}
 
-{\bf TODO: demonstrate that NN without biases can get very high accuracy on just the original dataset.}
-
-As demonstrated here {\bf (link...)}, the NN model above, with just $N=2$ layers, can achieve rather high classification accuracy of the 10 digits.
+The NN model above, with just $N=3$ layers, can achieve rather high classification accuracy of the 10 digits (see Sec.~\ref{Sec:empirics} below).
 It is trained on UCI ML hand-written digits dataset available with the scikit-learn python machine learning library\cite{} of roughly black digits on a white background.
 
 We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow \infty$. As long as the the images are majority white $\sum_i x_i > 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x+i \right)\approx 1$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
@@ -92,7 +90,7 @@ We note in passing that with the exception of the input layer to the neural netw
 Next, let us challenge the system. Consider the images with the grayscale inverted, such that the digits are now roughly white on 
 a black background. The inverted images still represent the same digits - the grayscale inversion transformation is therefore a symmetry of the problem. The geometric contrast is exactly the same, and so we would hope that a good machine learning system captures the geometric features of the digit themselves, and would be able to handle the inverted colors case well.
 
-One can test this empirically {\bf (add link to gist online demonstrating this in python)}, and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
+One can test this empirically (see Sec.~\ref{Sec:empirics} below), and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
 
 Under the grayscale inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer is odd in its 
 input. Therefore under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
@@ -167,24 +165,25 @@ We use a fully connected 3-layer neural network model with 20 hidden neurons in 
 We use both a neural network with and without bias terms for comparison. We train both models on 3 separate  versions of the data - the original dataset (denoted by $X_{train}$), a combination of the original dataset, together with the inverted copy of that dataset (denoted by $\pm X_{train}$), and by the symmetry-invariant features derived from the original dataset as defined in Eq.~\eqref{chi_features} (denoted by $\chi_{train}$). We calculate the precision, recall and f1-scores on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. To test the model trained on the symmetry-invariant dataset, we use yet another independent tests dataset, from which we derive the symmetry invariant features denoted $\chi_{test}$. The full results are enumerated in Table~\ref{Table:results_table}.
 
 
-\begin{array}{cccccc}\label{Table:results_table}
-	\textrm{using biases} & \textrm{training set} & \textrm{test set} & \textrm{precision} & \textrm{recall} & \textrm{f1-score} \\ 
+\begin{tabular}{ccccccc}\label{Table:results_table}
+	with biases & train data & test data & accuracy & precision & recall & f1-score \\ 
 	\hline
-	\textrm{True} & X_{train} & X_{test} & 0.91 & 0.91 & 0.91 \\
-	\textrm{False} & X_{train} & X_{test} & 0.89 & 0.89 & 0.89 \\
+	True & $X_{train}$ & $X_{test}$ & 0.91 & 0.91 & 0.91 & 0.91 \\
+	False & $X_{train}$ & $X_{test}$ & 0.89 & 0.89 & 0.89 & 0.89 \\
 	%
-	\textrm{True} & X_{train} & -X_{test} & 0 & 0 & 0 \\
-	\textrm{False} & X_{train} & -X_{test} & 0 & 0 & 0 \\
+	True & $X_{train}$ & $-X_{test}$ & $2e^{-3}$ & 0 & 0 & 0 \\
+	False & $X_{train}$ & $-X_{test}$ & $1e^{-3}$ & 0 & 0 & 0 \\
 	\hline
-	\textrm{True} & \pm X_{train} & X_{test} & 0.88 & 0.88 & 0.88 \\
-	\textrm{False} & \pm X_{train} & X_{test} & 0.08 & 0.09 & 0.06 \\
+	True & $\pm X_{train}$ & $X_{test}$ & 0.88 & 0.88 & 0.88 & 0.88 \\
+	False & $\pm X_{train}$ & $X_{test}$ & 0.09 & 0.08 & 0.09 & 0.06 \\
 	%
-	\textrm{True} & \pm X_{train} & -X_{test} & 0.82 & 0.81 & 0.81 \\
-	\textrm{False} & \pm X_{train} & -X_{test} & 0.14 & 0.08 & 0.07 \\
+	True & $\pm X_{train}$ & $-X_{test}$ & 0.82 & 0.82 & 0.81 & 0.81 \\
+	False & $\pm X_{train}$ & $-X_{test}$ & 0.08 & 0.14 & 0.08 & 0.07 \\
 	\hline	
-	\textrm{False} & \chi_{train} & \chi_{test} & 0.89 & 0.89 & 0.89 \\
+	False & $\chi_{train}$ & $\chi_{test}$ & 0.89 & 0.89 & 0.89 & 0.89 \\
 	\hline
-\end{array} 
+\end{tabular} 
+
 
 A number of findings are noteworthy. First, the $R + \bar{R} \leq 1$ limit we proved in the previous section clearly holds in our numerical experiment. Second, even a neural network model with the biases included generalizes quite poorly to the inverted samples, when trained only on the original dataset. When training on both the original dataset, and the inverted copy of it, the neural network without biases generalizes extremely poorly. The neural network with biases fairs much better. However, the neural network using the symmetry invariant features fairs best of all, though only slightly better than the neural network model with biases included trained on the original dataset and an inverted copy of it.
 
