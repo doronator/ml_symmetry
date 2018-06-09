@@ -14,7 +14,7 @@
 \date{\today}
 
 \author{Doron L. Bergman}
-\affiliation{MEGA LLC}
+\affiliation{San Francisco, CA}
 \email[E-mail me at: ]{doronator@gmail.com}
 
 \begin{abstract}
@@ -83,7 +83,7 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 \subsection{Issues with symmetry}
 
 The NN model above, with just $N=3$ layers, can achieve rather high classification accuracy of the 10 digits (see Sec.~\ref{Sec:empirics} below).
-It is trained on UCI ML hand-written digits dataset available with the scikit-learn python machine learning library\cite{} of roughly black digits on a white background.
+It is trained on UCI ML hand-written digits dataset available with the scikit-learn python machine learning library\cite{scikit-learn} of roughly black digits on a white background.
 
 We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow \infty$. As long as the the images are majority white $\sum_i x_i > 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x+i \right)\approx 1$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
 
