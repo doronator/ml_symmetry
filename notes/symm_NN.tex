@@ -162,25 +162,25 @@ We proceed to test the different approaches in a numerical experiment.
 \label{Sec:empirics}
 
 We use a fully connected 3-layer neural network model with 20 hidden neurons in the 1st layer, 10 in the second layer, and a softmax layer as the 3rd.
-We use both a neural network with and without bias terms for comparison. We train both models on 3 separate  versions of the data - the original dataset (denoted by $X_{train}$), a combination of the original dataset, together with the inverted copy of that dataset (denoted by $\pm X_{train}$), and by the symmetry-invariant features derived from the original dataset as defined in Eq.~\eqref{chi_features} (denoted by $\chi_{train}$). We calculate the precision, recall and f1-scores on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. To test the model trained on the symmetry-invariant dataset, we use yet another independent tests dataset, from which we derive the symmetry invariant features denoted $\chi_{test}$. The full results are enumerated in Table~\ref{Table:results_table}.
+We use both a neural network with and without bias terms for comparison. We train both models on 3 separate  versions of the data - the original dataset (denoted by $X_{train}$), a combination of the original dataset, together with the inverted copy of that dataset (denoted by $\pm X_{train}$), and by the symmetry-invariant features derived from the original dataset as defined in Eq.~\eqref{chi_features} (denoted by $\chi_{train}$). We calculate the accuracy on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. To test the model trained on the symmetry-invariant dataset, we use yet another independent tests dataset, from which we derive the symmetry invariant features denoted $\chi_{test}$. The full results are enumerated in Table~\ref{Table:results_table}.
 
 
 \begin{tabular}{ccccccc}\label{Table:results_table}
-	with biases & train data & test data & accuracy & precision & recall & f1-score \\ 
+	with biases & train data & test data & accuracy \\ 
 	\hline
-	True & $X_{train}$ & $X_{test}$ & 0.91 & 0.91 & 0.91 & 0.91 \\
-	False & $X_{train}$ & $X_{test}$ & 0.89 & 0.89 & 0.89 & 0.89 \\
+	True & $X_{train}$ & $X_{test}$ & 0.91 \\
+	False & $X_{train}$ & $X_{test}$ & 0.89 \\
 	%
-	True & $X_{train}$ & $-X_{test}$ & $2e^{-3}$ & 0 & 0 & 0 \\
-	False & $X_{train}$ & $-X_{test}$ & $1e^{-3}$ & 0 & 0 & 0 \\
+	True & $X_{train}$ & $-X_{test}$ & $2e^{-3}$ \\
+	False & $X_{train}$ & $-X_{test}$ & $1e^{-3}$ \\
 	\hline
-	True & $\pm X_{train}$ & $X_{test}$ & 0.88 & 0.88 & 0.88 & 0.88 \\
-	False & $\pm X_{train}$ & $X_{test}$ & 0.09 & 0.08 & 0.09 & 0.06 \\
+	True & $\pm X_{train}$ & $X_{test}$ & 0.88 \\
+	False & $\pm X_{train}$ & $X_{test}$ & 0.09 \\
 	%
-	True & $\pm X_{train}$ & $-X_{test}$ & 0.82 & 0.82 & 0.81 & 0.81 \\
-	False & $\pm X_{train}$ & $-X_{test}$ & 0.08 & 0.14 & 0.08 & 0.07 \\
+	True & $\pm X_{train}$ & $-X_{test}$ & 0.82 \\
+	False & $\pm X_{train}$ & $-X_{test}$ & 0.08 \\
 	\hline	
-	False & $\chi_{train}$ & $\chi_{test}$ & 0.89 & 0.89 & 0.89 & 0.89 \\
+	False & $\chi_{train}$ & $\chi_{test}$ & 0.89 \\
 	\hline
 \end{tabular} 
 
