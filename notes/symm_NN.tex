@@ -1,4 +1,4 @@
-\documentclass[twocolumn, prl]{revtex4-1}
+\documentclass[twocolumn, prl, nofootinbib]{revtex4-1}
 %\usepackage{graphicx}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
@@ -41,14 +41,14 @@ One of the prime challenges for any sufficiently rich model is over-fitting. The
 
 % can we find enough symmetry in ML?
 
-There are many obvious symmetries in vision problems - translation, rotations, and mirror images - essentially most portions of affine transformations\cite{gens2014deep, dieleman2016exploiting, cohen2016group, henriques2016warped}. Even some forms of approximate symmetry exist\cite{kiddonsymmetry} - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggests natural languages have an approximate word permutation invariance. This may explain why bag of word methods are often successful, despite not retaining the full information about the word order. 
+There are many obvious symmetries in vision problems - translation, rotations, and mirror images - essentially most portions of affine transformations\cite{gens2014deep, dieleman2016exploiting, cohen2016group, henriques2016warped}. Even some forms of approximate symmetry exist\cite{kiddonsymmetry} - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggests natural languages have an approximate word permutation invariance. This may explain why bag of word methods are often successful, despite not retaining the full information about the word order\footnote{Bag of words methods represent text by the set of words or phrases used in it.}. 
 %It is the author's belief that many symmetries may be hiding in various machine learning applications, they simply need to be thought about carefully.
 
 % Symmetry for all ... ML models
 Given the benefits of combining symmetry into machine learning models, it would be useful to have a simple way to incorporate symmetries into any machine learning model. In this paper we address this problem. In short, if inputs are transformed into features that are invariant under the full symmetry group, then the model outputs will automatically be invariant as well. Are we missing any information in this way? No. Any feature that is not invariant under symmetries of the system, will spoil the model invariance, at least for some set of weights. A successful symmetry invariant feature map will be a truncated set of features that suffices to capture enough of the information to make the model successful.
 
 % paper outline
-In order to demonstrate the importance and power of symmetry invariant feature maps, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In section~\ref{Sec:theory}, we describe the toy model we work with to demonstrate our ideas. In section~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementation of symmetry invariant feature maps. Finally we close with some closing remarks in section~\ref{Sec:conclusions}.
+In order to demonstrate the importance and power of symmetry invariant feature maps\footnote{A feature map is a function which maps an input data vector to a vector space to be consumed directly by a machine learning model. For instance, starting with inputs $x_{1,2}$, a feature map could generate the product $x_1 x_2$.}, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In section~\ref{Sec:theory}, we describe the toy model we work with to demonstrate our ideas. In section~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementing symmetry invariant feature maps. Finally we provide some closing remarks in section~\ref{Sec:conclusions}.
 
 
 %Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
@@ -62,20 +62,20 @@ In order to demonstrate the importance and power of symmetry invariant feature m
 \subsection{Neural network model}
 \label{Sec:dumb_NN}
 
-In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset available with the scikit-learn python machine learning library.
+In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset\footnote{The original repository for this dataset is \url{http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits}} available with the scikit-learn python machine learning library\cite{Dua:2017}.
 
 For the sake of simplicity, we will assume that our images are comprised of pixels with grayscale values scaled to the range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, thus mapping the internal features of a neural network (NN) to the range of values $[-1, +1]$ as well. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$. Finally, we shall not use any biases in any neuron in the system. Denoting the outputs from layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
 \be
-z^{(n+1)}_i = g\left(\sum_j w^n_{i, j} z^{(n)}_j\right)
+z^{(n+1)}_i = g\left(\sum_j w^{(n)}_{i, j} z^{(n)}_j\right)
 \; ,
 \ee
-where $g(z)$ in our case is $\tanh(z)$.
-The first input layer takes in the image pixels $z^0_i = x_i$. For classifying the digits, a final softmax layer produces 10 outputs which are the normalized probabilities for the image to be any one of the 10 digits
-\be
-p_{\alpha} = P(y=\alpha | x) \sim \exp\left[ \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = {\tilde p}_{\alpha}
+where $g(z)$ in our case is $\tanh(z)$\footnote{Note the absence of bias terms here - with bias terms the neuron action would be 
+$ z^{(n+1)}_i = g\left(b^{(n)}_i + \sum_j w^{(n)}_{i, j} z^{(n)}_j\right) $}. The first input layer takes in the image pixels $z^0_i = x_i$. For classifying the digits, a final softmax layer produces 10 outputs which are the normalized probabilities for the image to be any one of the 10 digits
+\be\label{softmax_1}
+p_{\alpha} \equiv P(y=\alpha | x) \sim \exp\left[ \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = {\tilde p}_{\alpha}
 \ee
 with the normalization
-\be
+\be\label{softmax_2}
 p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 \; .
 \ee
@@ -92,7 +92,7 @@ a black background. The inverted images still represent the same digits - the gr
 
 One can test this empirically (see Sec.~\ref{Sec:empirics} below), and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
 
-Under the grayscale inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer is odd in its 
+Under the grayscale inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer (Eqs.~\eqref{softmax_1},\eqref{softmax_2}) is odd in its 
 input. Therefore under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
 \be
 {\tilde p}_{\alpha} \rightarrow \exp\left[ - \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = 1/{\tilde p}_{\alpha}
@@ -130,18 +130,18 @@ What if we could construct the system to begin with to have the inversion symmet
 The simplest way to do this is to map the inputs (the pixels of the image) $x_i$ onto features that are invariant under the inversion symmetry.
 Let us consider a generic smooth feature mapping. It can be expanded in a Taylor series
 \be
-f_a({\bf x}) = \sum_{n_1, n_2, \ldots} A^{(a)}_{n_1, n_2, \ldots} x_1^{n_1} x_2^{n_2} \ldots
+f({\bf x}) = \sum_{n_1, n_2, \ldots} A_{n_1, n_2, \ldots} x_1^{n_1} x_2^{n_2} \ldots
 \; .
 \ee
 
 The feature maps that are invariant under the inversion symmetry are those functions even in the inputs $x_i$ - only the even power terms are allowed
 \be
-f_a({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
+f({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i, j} x_i x_j + \sum_{i, j, k, \ell} A^{(4)}_{i, j, k, \ell} x_i x_j x_k x_\ell + \ldots
 \; .
 \ee
 The lowest order feature maps that are non-trivial are the quadratic maps
 \be
-f_a({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i, j} x_i x_j
+f({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i, j} x_i x_j
 \; .
 \ee
 
@@ -212,8 +212,7 @@ In the application of machine learning to image recognition there is a vast amou
 
 \section{Acknowledgements}
 
-The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Novikov, for feedback on the ideas presented in this manuscript.
-
+The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Novikov, for feedback on the ideas presented in this manuscript. The author would also like to thank the UCI machine learning repository \url{http://archive.ics.uci.edu/ml/index.php} for making the dataset used in this work available.
 
 \vskip -0.2in
 
