@@ -1,5 +1,5 @@
 \documentclass[twocolumn, prl, nofootinbib]{revtex4-1}
-%\usepackage{graphicx}
+\usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
 \usepackage{amsmath}
@@ -33,7 +33,8 @@ Symmetry, together with understanding the relevant microscopic degrees of freedo
 
 % symmetry has not been used in ML much
 
-In statistics and computer science, traditionally there has been little use of symmetry. The recent emergence of convolutional neural networks applied to computer vision\cite{lecun1999object, lecun1990handwritten, lecun1998gradient, krizhevsky2012imagenet, lee2009convolutional, lecun2015deep}, where translational symmetry of images is used to constrain the form of neural network models, is a first demonstration of the vast potential in building symmetries into machine learning models.
+In statistics and computer science, traditionally there has been far less use for symmetry than in the physical sciences,
+since the problems these fields were solving often did not posses any symmetrical structures. The machine learning community has begun to explore the uses of symmetry, but there are many more scenarios where it could prove a practical advantage. The recent emergence of convolutional neural networks applied to computer vision\cite{lecun1989generalization, lecun1999object, lecun1990handwritten, lecun1998gradient, krizhevsky2012imagenet, lee2009convolutional, lecun2015deep}, where translational symmetry of images is used to constrain the form of neural network models, is a first demonstration of the vast potential in building symmetries into machine learning models.
 
 % symmetry can help in ML too!
 
@@ -48,7 +49,7 @@ There are many obvious symmetries in vision problems - translation, rotations, a
 Given the benefits of combining symmetry into machine learning models, it would be useful to have a simple way to incorporate symmetries into any machine learning model. In this paper we address this problem. In short, if inputs are transformed into features that are invariant under the full symmetry group, then the model outputs will automatically be invariant as well. Are we missing any information in this way? No. Any feature that is not invariant under symmetries of the system, will spoil the model invariance, at least for some set of weights. A successful symmetry invariant feature map will be a truncated set of features that suffices to capture enough of the information to make the model successful.
 
 % paper outline
-In order to demonstrate the importance and power of symmetry invariant feature maps\footnote{A feature map is a function which maps an input data vector to a vector space to be consumed directly by a machine learning model. For instance, starting with inputs $x_{1,2}$, a feature map could generate the product $x_1 x_2$.}, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In section~\ref{Sec:theory}, we describe the toy model we work with to demonstrate our ideas. In section~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementing symmetry invariant feature maps. Finally we provide some closing remarks in section~\ref{Sec:conclusions}.
+In order to demonstrate the importance and power of symmetry invariant feature maps\footnote{A feature map is a function which maps an input data vector to a vector space to be consumed directly by a machine learning model. For instance, starting with inputs $x_{1,2}$, a feature map could generate the product $x_1 x_2$.}, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In Sec.~\ref{Sec:theory}, we describe the toy model we work with to demonstrate our ideas. In Sec.~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementing symmetry invariant feature maps. Finally we provide some closing remarks in Sec.~\ref{Sec:conclusions}.
 
 
 %Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
@@ -85,7 +86,7 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 The NN model above, with just $N=3$ layers, can achieve rather high classification accuracy of the 10 digits (see Sec.~\ref{Sec:empirics} below).
 It is trained on UCI ML hand-written digits dataset available with the scikit-learn python machine learning library\cite{scikit-learn} of roughly black digits on a white background.
 
-We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow \infty$. As long as the the images are majority white $\sum_i x_i > 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x+i \right)\approx 1$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
+We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow -\infty$. As long as the the images are majority white $\sum_i x_i < 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x+i \right)\approx 1$. If the images are majority black, we can achieve the same effect with $w_0 \rightarrow +\infty$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
 
 Next, let us challenge the system. Consider the images with the grayscale inverted, such that the digits are now roughly white on 
 a black background. The inverted images still represent the same digits - the grayscale inversion transformation is therefore a symmetry of the problem. The geometric contrast is exactly the same, and so we would hope that a good machine learning system captures the geometric features of the digit themselves, and would be able to handle the inverted colors case well.
@@ -158,34 +159,44 @@ where $i + {\hat e}_1$ denotes the pixel immediately to the right of the pixel $
 We proceed to test the different approaches in a numerical experiment.
 
 
+\begin{table}
+\label{table:results_table}
+\begin{tabular}{l p{2.8cm} p{1.5cm} p{1.5cm} | l}
+	biases & features symmetry invariance & training set & test set & accuracy \\ 
+	\hline
+	No bias & non-invariant & $X_{train}$ & $X_{test}$ & 0.84 \\
+	%\cline{4-5}
+	 &  &  & $-X_{test}$ & 0.001 \\ 
+	\cline{3-5}
+	 &  & $\pm X_{train}$ & $X_{test}$ & 0.12 \\
+	%\cline{4-5}
+	 &  &  & $-X_{test}$ & 0.09 \\ 
+	\hline	
+	With bias & non-invariant & $X_{train}$ & $X_{test}$ & 0.81 \\
+	 &  &  & $-X_{test}$ & 0.02 \\ 
+	\cline{3-5}
+	 &  & $\pm X_{train}$ & $X_{test}$ & 0.68 \\
+	 &  &  & $-X_{test}$ & 0.69 \\ 
+	\hline
+	No bias & invariant & $X_{train}$ & $X_{test}$ & 0.84 \\
+	 &  &  & $-X_{test}$ & 0.84 \\ 
+	\hline
+	With bias & invariant & $X_{train}$ & $X_{test}$ & 0.87 \\
+	 &  &  & $-X_{test}$ & 0.87 \\ 
+	\hline
+\end{tabular}
+\caption{Accuracy measurements of the different models, training and testing sets.} 
+\end{table}
+
+
 \section{Numerical experiment}
 \label{Sec:empirics}
 
-We use a fully connected 3-layer neural network model with 20 hidden neurons in the 1st layer, 10 in the second layer, and a softmax layer as the 3rd.
-We use both a neural network with and without bias terms for comparison. We train both models on 3 separate  versions of the data - the original dataset (denoted by $X_{train}$), a combination of the original dataset, together with the inverted copy of that dataset (denoted by $\pm X_{train}$), and by the symmetry-invariant features derived from the original dataset as defined in Eq.~\eqref{chi_features} (denoted by $\chi_{train}$). We calculate the accuracy on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. To test the model trained on the symmetry-invariant dataset, we use yet another independent tests dataset, from which we derive the symmetry invariant features denoted $\chi_{test}$. The full results are enumerated in Table~\ref{Table:results_table}.
+We use a fully connected 3-layer neural network model with 10 hidden neurons in the 1st layer, 5 in the second layer, and a softmax layer as the 3rd.
+We use both a neural network with and without bias terms for comparison. We train both models on 3 separate  versions of the data - the original dataset (denoted by $X_{train}$), a combination of the original dataset, together with the inverted copy of that dataset (denoted by $\pm X_{train}$), and by the symmetry-invariant features derived from the original dataset as defined in Eq.~\eqref{chi_features} - essentially training on $X_{train}$, just with a feature map layer added. We calculate the accuracy on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. The full results are enumerated in Table~\ref{table:results_table}.
 
 
-\begin{tabular}{ccccccc}\label{Table:results_table}
-	with biases & train data & test data & accuracy \\ 
-	\hline
-	True & $X_{train}$ & $X_{test}$ & 0.91 \\
-	False & $X_{train}$ & $X_{test}$ & 0.89 \\
-	%
-	True & $X_{train}$ & $-X_{test}$ & $2e^{-3}$ \\
-	False & $X_{train}$ & $-X_{test}$ & $1e^{-3}$ \\
-	\hline
-	True & $\pm X_{train}$ & $X_{test}$ & 0.88 \\
-	False & $\pm X_{train}$ & $X_{test}$ & 0.09 \\
-	%
-	True & $\pm X_{train}$ & $-X_{test}$ & 0.82 \\
-	False & $\pm X_{train}$ & $-X_{test}$ & 0.08 \\
-	\hline	
-	False & $\chi_{train}$ & $\chi_{test}$ & 0.89 \\
-	\hline
-\end{tabular} 
-
-
-A number of findings are noteworthy. First, the $R + \bar{R} \leq 1$ limit we proved in the previous section clearly holds in our numerical experiment. Second, even a neural network model with the biases included generalizes quite poorly to the inverted samples, when trained only on the original dataset. When training on both the original dataset, and the inverted copy of it, the neural network without biases generalizes extremely poorly. The neural network with biases fairs much better. However, the neural network using the symmetry invariant features fairs best of all, though only slightly better than the neural network model with biases included trained on the original dataset and an inverted copy of it.
+A number of findings are noteworthy. First, the $R + \bar{R} \leq 1$ limit we proved in the previous section clearly holds in our numerical experiment. Second, even a neural network model with the biases included generalizes quite poorly to the inverted samples, when trained only on the original dataset. When training on both the original dataset, and the inverted copy of it, the neural network without biases performs extremely poorly. The neural network with biases fairs much better. However, the neural network using the symmetry invariant features fared best of all.
 
 Our findings suggest that using symmetry invariant features may at the very least result in similar generalization quality to the standard practice of training on a transformed copy of the dataset.
 
