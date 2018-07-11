@@ -1,4 +1,4 @@
-\documentclass[twocolumn, nofootinbib]{revtex4-1}
+\documentclass[twocolumn, nofootinbib, aps, prb]{revtex4-1}
 \usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
@@ -49,7 +49,7 @@ There are many obvious symmetries in vision problems - translation, rotations, a
 Given the benefits of combining symmetry into machine learning models, it would be useful to have a simple way to incorporate symmetries into any machine learning model. In this paper we address this problem. In short, if inputs are transformed into features that are invariant under the full symmetry group, then the model outputs will automatically be invariant as well. Are we missing any information in this way? No. Any feature that is not invariant under symmetries of the system, will spoil the model invariance, at least for some set of weights. A successful symmetry invariant feature map will be a truncated set of features that suffices to capture enough of the information to make the model successful.
 
 % paper outline
-In order to demonstrate the importance and power of symmetry invariant feature maps\footnote{A feature map is a function which maps an input data vector to a vector space to be consumed directly by a machine learning model. For instance, starting with inputs $x_{1,2}$, a feature map could generate the product $x_1 x_2$.}, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In Sec.~\ref{Sec:theory}, we describe the toy model we work with to demonstrate our ideas. In Sec.~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementing symmetry invariant feature maps. Finally we provide some closing remarks in Sec.~\ref{Sec:conclusions}.
+In order to demonstrate the importance and power of symmetry invariant feature maps\footnote{A feature map is a function which maps an input data vector to a vector space to be consumed directly by a machine learning model. For instance, starting with inputs $x_{1,2}$, a feature map could generate the product $x_1 x_2$.}, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In Sec.~\ref{Sec:model}, we describe the toy model we work with to demonstrate our ideas. In Sec.~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementing symmetry invariant feature maps. In Sec.~\ref{Sec:general_theory} we show how fitting neural network models without symmetry invariance enforced, leads to shallow directions in the fitting parameter space. Finally we provide some closing remarks in Sec.~\ref{Sec:conclusions}.
 
 
 %Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
@@ -58,7 +58,7 @@ In order to demonstrate the importance and power of symmetry invariant feature m
 
 % https://www.reddit.com/r/todayilearned/comments/hqq6k/til_you_can_flipmirror_a_youtube_video_to/
 
-\section{Theory}\label{Sec:theory}
+\section{Toy model}\label{Sec:model}
 \subsection{Neural network model}\label{Sec:dumb_NN}
 
 In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset\footnote{The original repository for this dataset\cite{Dua:2017} is \url{http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits}} available with the scikit-learn python machine learning library\cite{scikit-learn}.
@@ -68,8 +68,8 @@ For the sake of simplicity, we will assume that our images are comprised of pixe
 z^{(n+1)}_i = g\left(\sum_j w^{(n)}_{i, j} z^{(n)}_j\right)
 \; ,
 \ee
-where $g(z)$ in our case is $\tanh(z)$\footnote{Note the absence of bias terms here - with bias terms the neuron action would be 
-$ z^{(n+1)}_i = g\left(b^{(n)}_i + \sum_j w^{(n)}_{i, j} z^{(n)}_j\right) $}. The first input layer takes in the image pixels $z^0_i = x_i$. For classifying the digits, a final softmax layer produces 10 outputs which are the normalized probabilities for the image to be any one of the 10 digits
+where $g(z)$ in our case is $\tanh(z)$. Note the absence of bias terms here - with bias terms the neuron action would be 
+$ z^{(n+1)}_i = g\left(b^{(n)}_i + \sum_j w^{(n)}_{i, j} z^{(n)}_j\right) $. The first input layer takes in the image pixels $z^0_i = x_i$. For classifying the digits, a final softmax layer produces 10 outputs which are the normalized probabilities for the image to be any one of the 10 digits
 \be\label{softmax_1}
 p_{\alpha} \equiv P(y=\alpha | x) \sim \exp\left[ \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = {\tilde p}_{\alpha}
 \ee
@@ -173,7 +173,6 @@ These features do not inform the machine learning model of the local nature of t
 
 We proceed to test the different approaches in a numerical experiment.
 
-
 \begin{table}
 \begin{tabular}{l l l l | l}
 	biases & features & training set & test set & accuracy \\ 
@@ -185,7 +184,8 @@ We proceed to test the different approaches in a numerical experiment.
 	 &  & $\pm X_{train}$ & $X_{test}$ & 0.12 \\
 	%\cline{4-5}
 	 &  &  & $-X_{test}$ & 0.09 \\ 
-	\hline	
+	\hline
+	\hline
 	With bias & $x_i$ & $X_{train}$ & $X_{test}$ & 0.81 \\
 	 &  &  & $-X_{test}$ & 0.02 \\ 
 	\cline{3-5}
@@ -204,15 +204,16 @@ We proceed to test the different approaches in a numerical experiment.
 		\hline
 		No bias & $x_i^2$ & $X_{train}$ & $X_{test}$ & 0.65 \\
 		\cline{2-5}
-		No bias & $x_i x_{i + {\hat e}_1}$ & $X_{train}$ & $X_{test}$ & 0.84 \\
+		 & $x_i x_{i + {\hat e}_1}$ & $X_{train}$ & $X_{test}$ & 0.84 \\
 		\cline{2-5}
-		No bias & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.81 \\ 
+		 & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.81 \\ 
+		\hline
 		\hline
 		With bias & $x_i^2$ & $X_{train}$ & $X_{test}$ & 0.66 \\
 		\cline{2-5}
-		With bias & $x_i x_{i + {\hat e}_1}$ & $X_{train}$ & $X_{test}$ & 0.87 \\	
+		 & $x_i x_{i + {\hat e}_1}$ & $X_{train}$ & $X_{test}$ & 0.87 \\	
 		\cline{2-5}
-		With bias & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.82 \\	
+		 & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.82 \\	
 		\hline
 	\end{tabular}
 	\caption{Accuracy measurements of the different models, training and testing sets, with symmetry-invariant features. Symmetry invariance guarantees that the exact same results are obtained on the inverted test sets $-X_{test}$.}
@@ -244,6 +245,67 @@ Our findings suggest that using symmetry invariant features may at the very leas
 
 
 
+\section{Universal theory}\label{Sec:general_theory}
+
+\subsection{Fitting parameter degeneracy}\label{Goldstone_modes}
+
+As we have mentioned above, the standard practice of dealing with symmetry is to create symmetry-transformed copies of samples, and add them to the training set. This approach is very appealing because of how straightforward it is. In our toy model, we found that this approach gave a less accurate result than using symmetry invariant features. In this subsection, we shall explore how this standard practice effects the fitting process.
+
+We mention in passing, that if one does not sample transformed versions of the training set, and the model is not invariant to the symmetries, the model will have no information about the symmetry, and will most likely over-fit such that transformed versions of the same examples the model was trained on will yield low predictive accuracy. this certainly is what we have found in the toy model we employed in the previous sections.
+
+Fitting parameters involves minimizing an appropriate utility function
+\begin{equation}
+\Omega({\bf \theta}) = \sum_i L(y_i, {\hat y}_i)
+\end{equation}
+where $L(y, {hat y})$ is the an appropriate cost (or loss) function, such as $(y - {hat y})^2$, and ${\hat y}_i$ are the predictions of the model
+\begin{equation}
+{\hat y}_i = f({\bf x}_i; {\bf \theta})
+\; .
+\end{equation}
+Here ${\bf \theta}$ are the model parameters, and $i$ denote the different data samples. In addition to a loss function there may or may not be a regularization term added to the utility function, we shall ignore that for now.
+
+The standard practice, taken to its logical conclusion, amounts to applying each member of the symmetry group on all the samples, and adding them to the training dataset. The utility function then becomes
+\begin{equation}\label{standard_practice_fitting}
+\Omega({\bf \theta}) = \sum_i \sum_{g \in G} L(y_i, f(U(g) {\bf x}_i; {\bf \theta}))
+\; ,
+\end{equation}
+where $g \in G$ denotes a sum over all the elements in the symmetry group $G$, and $U(g) {\bf x}_i$ denotes the transformation of the vector ${\bf x}_i$ under the group element $g$.
+
+The sum $\sum_{g \in G}$ renders the utility function itself invariant under any symmetry transformations ${\bf x} \rightarrow U(h) {\bf x}$. As a result, in general the minimum of the utility function will not be unique, but rather will span an entire orbit of the symmetry group, and will most likely be in the largest orbits - those of the same number of elements as the symmetry group itself. If the symmetry group is a continuous one, then the minima will form a continuous manifold. This may cause significant numerical convergence issues - the flat directions in parameter space may confuse a stopping criteria, and cause a gradient based algorithm to continue roaming parameter space rather than stop. Similar phenomena in the modeling of MRI data have been recently uncovered by Novikov et al. \onlinecite{novikov2018rotationally}. These flat directions, are akin to Goldstone modes appearing in the context of continuous symmetry breaking\cite{nambu1960quasi, goldstone1961field, goldstone1962broken}.
+
+It is useful to see how the degeneracy in fitting parameter space arises explicitly, especially to understand how things change when we use symmetry invariant features.
+
+Consider a model such as a NN model. The first layer of a NN consists of an affine transformation of the input features. We can write such models in the form
+\begin{equation}
+{\hat y} = \Psi( {\hat w} \cdot {\bf x} + {\bf b})
+\; .
+\end{equation}
+Because the utility function sums over all symmetry transformations of the feature space, it will also be invariant under all symmetry transformations of the weights ${\hat w} \rightarrow {\hat w} \cdot U(g)$. Thus $\Omega({\hat w}, \ldots) = \Omega({\hat w} U(g), \ldots)$, where $\ldots$ denote any other weights that the model may depend on. This an explicit example of how the degeneracy arises. 
+
+When using symmetry invariant features, we have $\forall g U(g) = 1$, and no degeneracy is forced by symmetry. The utility function will be in the trivial orbit in these cases - the utility function minimum is in general a single point in parameter space. Any degeneracy in the utility function minima will be spurious, and can be broken by any small perturbation to the training dataset. The exact same behavior is found in the physics in the behavior of eigenstates in quantum mechanics. Different eigenstates can be degenerate, and have the same energy level. If the degeneracy is because of a symmetry, then the degeneracy survives perturbations to the system . If the degeneracy is accidental (meaning not due to symmetry), then any perturbation in general will remove the degeneracy.
+
+so far we have discussed a utility function where every possible symmetry transformation of each sample is taken into account. One could imagine sampling this full set of transformed samples, rather than training on its entirety. We can model this random selection as follows
+\begin{equation}
+\Omega({\bf \theta}) = \sum_i \sum_{g \in G} \eta_{i,g} L(y_i, f(U(g) {\bf x}_i; {\bf \theta}))
+\; ,
+\end{equation}
+where $\eta_{i,g} \in {0,1}$ is a random indicator variable determining whether a certain sample will be taken into account in the training process or not. The probability for each sample to be taken into account should be equal, and therefore there is a homogeneous expectation value $\forall i, g E(\eta_{i,g}) = \mu$. This causes the expectation value of the utility function to become
+\begin{equation}
+E \left( \Omega({\bf \theta}) \right) = \mu \sum_i \sum_{g \in G} L(y_i, f(U(g) {\bf x}_i; {\bf \theta}))
+\; ,
+\end{equation}
+thus reverting back to the form of Eq.~\eqref{standard_practice_fitting}.
+Much like in disorder physics, while randomness breaks symmetry for any individual instance, the expectation value restores the symmetry.
+
+To close this subsection we note that recent work on deep neural networks identified the two phases of learning\cite{shwartz1703opening}. The first phase is characterized by a descent into a valley of the utility function. The second is characterized by diffusion within the valley around the minimum, until a final minimum is settled upon. It is tempting to think that the second diffusive phase may take place in the very same shallow valley we uncover here.
+
+
+\subsection{General symmetry invariants}
+
+In this subsection we will briefly discuss a general approach towards constructing the symmetry invariant features required to effectively tackle machine learning with symmetry enforced.
+
+Using group theory terminology, every input vector space is a representation of the symmetry group. This representation is a direct sum of irreducible representations (irreps). Each irrep very naturally produces one quadratic invariant of the symmetry group - the norm within that irrep. However, these invariants alone do not generally constitute a full encoding of the information modulo the symmetry transformations. While previous work\cite{kazhdan2003rotation} using only such invariants has proven this approach useful, we feel the full potential of symmetry enforced upon machine learning models is best served when the encoding is complete, i.e. no information is lost when using symmetry invariant features alone.
+
 
 \section{Conclusions}\label{Sec:conclusions}
 
@@ -253,12 +315,15 @@ We demonstrated the dire consequences ignoring symmetry can have on the performa
 
 When using symmetry invariant features, we found that the choice of which features to use is significant. Some symmetry invariant features may lose significant amounts of information. In our investigation here, using the feature set $x_i^2$ loses all information about the signs of $x_i$. The two other symmetry invariant feature sets we used retain the sign information either fully in the case of the gradient-like features $x_i x_{i + {\hat e}_1}$ or at least partially in the case of the randomized features $x_i x_{P(i)}$. The significant difference in accuracy between the feature sets that retain the sign information, and the one that does not, indicate the importance of encoding the full input information when constructing symmetry invariant features.
 
+Our examination of the fitting utility function when dealing with symmetry uncovered a danger in the standard approach of fitting the model to transformed copies of the data. The utility function will have symmetry induced degenerate minima. For continuous (Lie) symmetry groups, spurious Goldstone modes (shallow directions in the fit landscape) will arise in this context. Training on symmetry invariant features eliminates these degeneracies. 
+
 In the application of machine learning to image recognition there is a vast amount of symmetry to be found. Translational invariance, mirror reflections, at least a degree of rotational invariance, scale invariance (zooming in and out), as well as changing the colors themselves while maintaining contrast between different colored pixels are all transformations under which the perception of the image ought to remain unchanged. There is much more work to be done to take full advantage of these symmetries in developing more effective and robust image recognition systems.
 
 
 \section{Acknowledgements}
 
-The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Novikov, for useful feedback on the ideas presented in this manuscript. The author would also like to thank the UCI machine learning repository \url{http://archive.ics.uci.edu/ml/index.php} for making the dataset used in this work available.
+The author would like to thank Miles Stoudenmire, Daniel Malinow, David J. Bergman, and Dmitry S. Novikov, for useful feedback on the ideas presented in this manuscript. In particular, discussions with Dmitry S. Novikov inspired exploring the fitting parameter degeneracy
+that occurs when symmetry is not enforced upon a fitting model. The author would also like to thank the UCI machine learning repository \url{http://archive.ics.uci.edu/ml/index.php} for making the dataset used in this work available.
 
 \vskip -0.2in
 
@@ -272,11 +337,6 @@ The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Nov
 \vskip 0.2in
 
 \end{document}
-
-
-
-0. There is an obvious mapping between a NN applied to a data set, and evaluating an action functional on a particular “path” (or a free energy of a particular “spin” configuration). Such an action should be defined on states that realize irreducibe representations of all symmetry groups (much like spinors are used to write down a QED action). Therefore, practically: 
-1. Best performance is attained when features realize all invariants of irreducible representations of the symmetry group of the data. 2. For Lie symmetry groups, training on invariants eliminates spurious “Goldstone modes” (shallow directions in the fit landscape) that correspond to group orbits. 3. Spontaneous symmetry breaking will result in lower-dimensional Goldstone modes; approximate symmetry breaking will give small curvature to these modes, much like what gives quarks their masses. 4. Conservation laws would result in different universality classes for convergence of the training, akin to the Glauber/Kawasaki typeA/typeB dynamics, see Hohenberg and Halperin RMP1977.  
 
 
 
