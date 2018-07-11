@@ -47,3 +47,9 @@ def inversion_symmetric_features(X, image_shape=(8,8)):
     _X = X.reshape(n_samples, *image_shape)
     result = _X*np.roll(_X, shift=-1, axis=2)
     return result.reshape(n_samples, n_features)
+
+def random_permutation_inversion_symmetric_features(X, permutation):
+    _, n_features = X.shape
+    assert n_features==len(permutation)
+    result = X * X[:, permutation]
+    return result

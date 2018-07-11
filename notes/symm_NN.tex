@@ -1,4 +1,4 @@
-\documentclass[twocolumn, prl, nofootinbib]{revtex4-1}
+\documentclass[twocolumn, nofootinbib]{revtex4-1}
 \usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
@@ -58,12 +58,10 @@ In order to demonstrate the importance and power of symmetry invariant feature m
 
 % https://www.reddit.com/r/todayilearned/comments/hqq6k/til_you_can_flipmirror_a_youtube_video_to/
 
-\section{Theory}
-\label{Sec:theory}
-\subsection{Neural network model}
-\label{Sec:dumb_NN}
+\section{Theory}\label{Sec:theory}
+\subsection{Neural network model}\label{Sec:dumb_NN}
 
-In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset\footnote{The original repository for this dataset is \url{http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits}} available with the scikit-learn python machine learning library\cite{Dua:2017}.
+In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset\footnote{The original repository for this dataset\cite{Dua:2017} is \url{http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits}} available with the scikit-learn python machine learning library\cite{scikit-learn}.
 
 For the sake of simplicity, we will assume that our images are comprised of pixels with grayscale values scaled to the range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, thus mapping the internal features of a neural network (NN) to the range of values $[-1, +1]$ as well. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$. Finally, we shall not use any biases in any neuron in the system. Denoting the outputs from layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
 \be
@@ -81,12 +79,14 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 \; .
 \ee
 
+It must be noted at this point that ignoring the softmax layer for the moment, a neural network with one hidden layer of arbitrary size is a universal function approximator\cite{hornik1989multilayer}. Our restriction to the squashing function $\tanh$, together with eliminating the biases, reduces the function space the NN can approximate to functions odd in the inputs - this is no longer a universal function approximator.
+
 \subsection{Issues with symmetry}
 
 The NN model above, with just $N=3$ layers, can achieve rather high classification accuracy of the 10 digits (see Sec.~\ref{Sec:empirics} below).
-It is trained on UCI ML hand-written digits dataset available with the scikit-learn python machine learning library\cite{scikit-learn} of roughly black digits on a white background.
+It is trained on UCI ML hand-written digits dataset\cite{Dua:2017} available with the scikit-learn python machine learning library\cite{scikit-learn} of roughly black digits on a white background.
 
-We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow -\infty$. As long as the the images are majority white $\sum_i x_i < 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x+i \right)\approx 1$. If the images are majority black, we can achieve the same effect with $w_0 \rightarrow +\infty$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
+We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow -\infty$. As long as the the images are majority white $\sum_i x_i < 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x_i \right)\approx 1$. If the images are majority black, we can achieve the same effect with $w_0 \rightarrow +\infty$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
 
 Next, let us challenge the system. Consider the images with the grayscale inverted, such that the digits are now roughly white on 
 a black background. The inverted images still represent the same digits - the grayscale inversion transformation is therefore a symmetry of the problem. The geometric contrast is exactly the same, and so we would hope that a good machine learning system captures the geometric features of the digit themselves, and would be able to handle the inverted colors case well.
@@ -113,19 +113,18 @@ All the images in $A$, when inverted, will yield the wrong digit from the model.
 \ee
 Written more symmetrically as $R + {\bar R} \leq 1$ this demonstrates that the accuracy over the original dataset directly constrains the accuracy that can be had on the inverted images. If the original model is accurate more than half the time over this dataset, $R>0.5$, then ${\bar R} \leq 1 - R < 0.5$. Higher accuracy on the original dataset comes directly at the expense of accuracy on the inverted images.
 
-A model such as the one we are considering here would usually be trained on the original dataset, with only black digits on a white background. Once confronted with the reality of poor performance on the inverted images, a common approach is to simply add the additional manipulated samples to the training dataset.
+A model such as the one we are considering here would usually be trained on the original dataset, with only black digits on a white background. Once confronted with the reality of poor performance on the inverted images, a common approach is to simply add the additional manipulated samples to the training dataset. This effectively means that one trains not on images, but on orbits of the group.
 
 However given the demonstrated $R + {\bar R} \leq 1$ constraint, if the training fully converges onto the best model, then that would suggest 
 the constraint is saturated at $R + {\bar R} = 1$, and if the images and the inverted images are given equal weight in determining the model, one would expect $R = {\bar R} = 0.5$, a rather limited ceiling on the potential accuracy of the model.
 
 This is not a very happy state of affairs. 
 
-The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitesimally small, the upper limit on the accuracy can be only infinitesimally larger than in the vanishing biases case $R + {\bar R} \leq 1 + O(\epsilon)$.
+The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitesimally small, and if the NN is rather shallow (in practical applications this is nearly always the case) the upper limit on the accuracy can be only infinitesimally larger than in the vanishing biases case $R + {\bar R} \leq 1 + O(\epsilon)$. If the NN is deep this argument will not hold. If one is to understand a deep NN as performing many renormalization group iterations (RG)\cite{mehta2014exact}, then the NN should be able to take an infinitesimal deviation and amplify it to a sizable deviation. A deep enough NN would be capable of using infinitesimally small biases to violate $R + {\bar R} \leq 1$ significantly, rather than infinitesimally.
 
 In the next section, we consider an alternative approach, where rather than re-introducing the biases, we change the features we feed to the model. In particular, we choose features that are invariant under the inversion symmetry.
 
-\subsection{Incorporating symmetry}
-\label{Sec:symmetry_invariant_features}
+\subsection{Incorporating symmetry}\label{Sec:symmetry_invariant_features}
 
 What if we could construct the system to begin with to have the inversion symmetry built in to the model?
 The simplest way to do this is to map the inputs (the pixels of the image) $x_i$ onto features that are invariant under the inversion symmetry.
@@ -149,22 +148,37 @@ f({\bf x}) = A^{(0)} +  \sum_{i, j} A^{(2)}_{i, j} x_i x_j
 If instead of the $x_i$ inputs, we fed the inversion symmetry invariant features $\chi_{i,j} = x_i x_j$ into the NN model, we would enforce the classification to be perfectly invariant under the inversion symmetry.
 
 However, given $x_{1 \ldots M}$ pixels, the number of $\chi_{i,j}$ features is $M(M+1)/2$, a far larger number of features than the $M$ features $x_i$. Using the same neural network architecture with a much larger number of input features is not a fair comparison - there would be many more free parameters using these features than in the original model. Generally a model with more free parameters can better fit a given dataset, albeit with an increased danger of over-fitting.
-To level the playing field we will choose a subset of the possible features with a similar number of free parameters
-\be\label{chi_features}
-\chi_i =  x_i x_{i + {\hat e}_1}
+To level the playing field we will choose a subset of the possible features with a similar number of free parameters. 
+
+A rather natural guess is to choose $x_i^2$ as the symmetry invariant features. However, this choice suffers from a significant part of the information encoded in the inputs $x_i^2$ being lost - the signs of the inputs. In the extreme case where all pixels are either white or black, $x_i = \pm 1$, and $\forall i x_i^2 = 1$, leaving the features $x_i^2$ devoid of any information at all. The signs by themselves are not invariant under the inversion symmetry, but the relative sign between different pixels are
+\begin{equation}
+\frac{sign(x_i)}{sign(x_j)} = \frac{x_i x_j}{\sqrt{x_i^2 x_j ^2}}
+\; .
+\end{equation}
+It is this information that we shall strive to include in the symmetry invariant features.
+
+A simple choice that will definitely capture all the relative signs, as well as at least some information about the magnitudes of the input values is
+\be
+x_i x_{i + {\hat e}_1}
 \; ,
 \ee
 where $i + {\hat e}_1$ denotes the pixel immediately to the right of the pixel $i$. For the edge pixels, we wrap the the index arithmetic around the boundaries of the image, essentially acting as if it were wrapped around a cylinder. The products $x_i x_{i + {\hat e}_1}$ contain information similar to a gradient of the image pixels since when both pixels are pure black or pure white, the product is +1, and when they are opposite black and white colors, it is -1. If the image were made of only extreme grayscale values - only black and white, an image made up of the $\chi_i$ features, would show the boundaries between the black and white regions of the original image.
+
+Using the gradient-like features when comparing performance with a NN using the original inputs as features, may be un-fair, since gradient-like features inform the machine learning system about the local nature of the problem. Instead, we consider yet another set of features. We pick a random permutation of the inputs $P$, and use it to construct precisely $M$ features
+\begin{equation}\label{random_features}
+\chi_i = x_i x_{P(i)}
+\; .
+\end{equation}
+These features do not inform the machine learning model of the local nature of the problem, are invariant under the inversion symmetry, and retain relative sign information whenever $i \neq P(i)$.
 
 We proceed to test the different approaches in a numerical experiment.
 
 
 \begin{table}
-\label{table:results_table}
-\begin{tabular}{l p{2.8cm} p{1.5cm} p{1.5cm} | l}
-	biases & features symmetry invariance & training set & test set & accuracy \\ 
+\begin{tabular}{l l l l | l}
+	biases & features & training set & test set & accuracy \\ 
 	\hline
-	No bias & non-invariant & $X_{train}$ & $X_{test}$ & 0.84 \\
+	No bias & $x_i$ & $X_{train}$ & $X_{test}$ & 0.84 \\
 	%\cline{4-5}
 	 &  &  & $-X_{test}$ & 0.001 \\ 
 	\cline{3-5}
@@ -172,38 +186,58 @@ We proceed to test the different approaches in a numerical experiment.
 	%\cline{4-5}
 	 &  &  & $-X_{test}$ & 0.09 \\ 
 	\hline	
-	With bias & non-invariant & $X_{train}$ & $X_{test}$ & 0.81 \\
+	With bias & $x_i$ & $X_{train}$ & $X_{test}$ & 0.81 \\
 	 &  &  & $-X_{test}$ & 0.02 \\ 
 	\cline{3-5}
 	 &  & $\pm X_{train}$ & $X_{test}$ & 0.68 \\
 	 &  &  & $-X_{test}$ & 0.69 \\ 
 	\hline
-	No bias & invariant & $X_{train}$ & $X_{test}$ & 0.84 \\
-	 &  &  & $-X_{test}$ & 0.84 \\ 
-	\hline
-	With bias & invariant & $X_{train}$ & $X_{test}$ & 0.87 \\
-	 &  &  & $-X_{test}$ & 0.87 \\ 
-	\hline
 \end{tabular}
-\caption{Accuracy measurements of the different models, training and testing sets.} 
+\caption{Accuracy measurements of the different models, training and testing sets, with the original inputs as features. Symmetry invariance is not enforced on any of the models.}
+\label{table:results_table_no_symmetry}
 \end{table}
 
 
-\section{Numerical experiment}
-\label{Sec:empirics}
+\begin{table}
+	\begin{tabular}{l l l l | l}
+		biases & features & training set & test set & accuracy \\ 
+		\hline
+		No bias & $x_i^2$ & $X_{train}$ & $X_{test}$ & 0.65 \\
+		\cline{2-5}
+		No bias & $x_i x_{i + {\hat e}_1}$ & $X_{train}$ & $X_{test}$ & 0.84 \\
+		\cline{2-5}
+		No bias & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.81 \\ 
+		\hline
+		With bias & $x_i^2$ & $X_{train}$ & $X_{test}$ & 0.66 \\
+		\cline{2-5}
+		With bias & $x_i x_{i + {\hat e}_1}$ & $X_{train}$ & $X_{test}$ & 0.87 \\	
+		\cline{2-5}
+		With bias & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.82 \\	
+		\hline
+	\end{tabular}
+	\caption{Accuracy measurements of the different models, training and testing sets, with symmetry-invariant features. Symmetry invariance guarantees that the exact same results are obtained on the inverted test sets $-X_{test}$.}
+	\label{table:results_table_symmetric}
+\end{table}
 
-We use a fully connected 3-layer neural network model with 10 hidden neurons in the 1st layer, 5 in the second layer, and a softmax layer as the 3rd.
-We use both a neural network with and without bias terms for comparison. We train both models on 3 separate  versions of the data - the original dataset (denoted by $X_{train}$), a combination of the original dataset, together with the inverted copy of that dataset (denoted by $\pm X_{train}$), and by the symmetry-invariant features derived from the original dataset as defined in Eq.~\eqref{chi_features} - essentially training on $X_{train}$, just with a feature map layer added. We calculate the accuracy on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. The full results are enumerated in Table~\ref{table:results_table}.
 
+\section{Numerical experiment}\label{Sec:empirics}
 
-A number of findings are noteworthy. First, the $R + \bar{R} \leq 1$ limit we proved in the previous section clearly holds in our numerical experiment. Second, even a neural network model with the biases included generalizes quite poorly to the inverted samples, when trained only on the original dataset. When training on both the original dataset, and the inverted copy of it, the neural network without biases performs extremely poorly. The neural network with biases fairs much better. However, the neural network using the symmetry invariant features fared best of all.
+The dataset we use\cite{Dua:2017} consists of $8 \times 8$ images, and is enlarged by a factor of 5 by duplicating and shifting all the images 1 pixel to the right, left, up, and down, in addition to the original images. This procedure is applied to the dataset before it is fed to any one of the models we compare here.
 
-Our findings suggest that using symmetry invariant features may at the very least result in similar generalization quality to the standard practice of training on a transformed copy of the dataset.
+We compare the performance of a variety of NN models. They all share the same architecture - a fully connected 3-layer neural network model with 10 hidden neurons in the 1st layer, 5 in the second layer, and a softmax layer as the 3rd. 
+
+We use neural networks both with and without bias terms - naturally those with bias terms have a few more free parameters. The NN models are used with a variety of different features. The original inputs $x_i$ are used as non-symmetry invariant features, and in this case we train the NN models on a number of different versions of the data. We train either on the original dataset (denoted by $X_{train}$), or a combination of the original dataset, together with the inverted copy of that dataset $-X_{train}$. For all other cases we use features that are symmetry invariant - $x_i^2$, $x_i x_{i + {\hat e}_1}$, and $x_i x_{P(i)}$. Symmetry invariant models we need train only on $X_{train}$, the feature map acting as an additional layer before the NN model receives the data.
+
+We calculate the accuracy on independent test datasets denoted by $X_{test}$, as well as on its inverted copy denoted by $-X_{test}$. The results for the NN models without symmetry invariant features are enumerated in Table~\ref{table:results_table_no_symmetry}. The results for the NN models using the various symmetry invariant features we propose are enumerated in Table~\ref{table:results_table_symmetric}.
+
+A number of findings are noteworthy. First, the $R + \bar{R} \leq 1$ limit we proved in the previous section clearly holds in our numerical experiment with the models using non-symmetry invariant features in Table~\ref{table:results_table_no_symmetry}. Second, even a neural network model with the biases included generalizes extremely poorly to the inverted samples, when trained only on the original dataset. The same model with biases included does somewhat better when trained on both the original dataset, and the inverted copy of it, but still the accuracy is rather disappointing, and far lower than what the same model can achieve when trained and tested only on the original dataset of black digits on a white background. The NN models using the symmetry invariant features fare best of all.
+
+Our findings suggest that using symmetry invariant features may at the very least result in similar generalization quality to the standard practice of training on a transformed copy of the dataset, and may surpass it to a significant degree.
 
 \begin{figure}
 \centering
 \includegraphics[width=1.0\linewidth]{images/six_cubed}
-\caption{A sample image (handwritten figure 6) from the dataset (left), the image after the inversion transformation (middle), and the $\chi_i$ feature image symmetric under the inversion transformation (right).}
+\caption{A sample image (handwritten figure 6) from the dataset (left), the image after the inversion transformation (middle), and the gradient-like $x_i x_{i + {\hat e}_1}$ feature image symmetric under the inversion transformation (right).}
 \label{fig:six_cubed}
 \end{figure}
 
@@ -211,19 +245,20 @@ Our findings suggest that using symmetry invariant features may at the very leas
 
 
 
-\section{Conclusions}
-\label{Sec:conclusions}
+\section{Conclusions}\label{Sec:conclusions}
 
 In this article we explored the role symmetry can play in machine learning. We introduced a general way to enforce symmetry onto a machine learning model, namely to preselect features that are invariant under the symmetry transformations.
 
 We demonstrated the dire consequences ignoring symmetry can have on the performance of a constrained family of neural network models, and how enforcing symmetry onto this model can be a benefit, and is not overly complex.
 
-In the application of machine learning to image recognition there is a vast amount of symmetry to be found. Translational invariance, mirror reflections, at least a degree of rotational invariance, zooming in and out, as well as changing the colors themselves while maintaining contrast between different colored pixels are all transformations under which the perception of the image ought to remain unchanged. There is much more work to be done to take full advantage of these symmetries in developing more effective and robust image recognition systems.
+When using symmetry invariant features, we found that the choice of which features to use is significant. Some symmetry invariant features may lose significant amounts of information. In our investigation here, using the feature set $x_i^2$ loses all information about the signs of $x_i$. The two other symmetry invariant feature sets we used retain the sign information either fully in the case of the gradient-like features $x_i x_{i + {\hat e}_1}$ or at least partially in the case of the randomized features $x_i x_{P(i)}$. The significant difference in accuracy between the feature sets that retain the sign information, and the one that does not, indicate the importance of encoding the full input information when constructing symmetry invariant features.
+
+In the application of machine learning to image recognition there is a vast amount of symmetry to be found. Translational invariance, mirror reflections, at least a degree of rotational invariance, scale invariance (zooming in and out), as well as changing the colors themselves while maintaining contrast between different colored pixels are all transformations under which the perception of the image ought to remain unchanged. There is much more work to be done to take full advantage of these symmetries in developing more effective and robust image recognition systems.
 
 
 \section{Acknowledgements}
 
-The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Novikov, for feedback on the ideas presented in this manuscript. The author would also like to thank the UCI machine learning repository \url{http://archive.ics.uci.edu/ml/index.php} for making the dataset used in this work available.
+The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Novikov, for useful feedback on the ideas presented in this manuscript. The author would also like to thank the UCI machine learning repository \url{http://archive.ics.uci.edu/ml/index.php} for making the dataset used in this work available.
 
 \vskip -0.2in
 
@@ -237,6 +272,11 @@ The author would like to thank Miles Stoudenmire, Daniel Malinow, and Dmitry Nov
 \vskip 0.2in
 
 \end{document}
+
+
+
+0. There is an obvious mapping between a NN applied to a data set, and evaluating an action functional on a particular “path” (or a free energy of a particular “spin” configuration). Such an action should be defined on states that realize irreducibe representations of all symmetry groups (much like spinors are used to write down a QED action). Therefore, practically: 
+1. Best performance is attained when features realize all invariants of irreducible representations of the symmetry group of the data. 2. For Lie symmetry groups, training on invariants eliminates spurious “Goldstone modes” (shallow directions in the fit landscape) that correspond to group orbits. 3. Spontaneous symmetry breaking will result in lower-dimensional Goldstone modes; approximate symmetry breaking will give small curvature to these modes, much like what gives quarks their masses. 4. Conservation laws would result in different universality classes for convergence of the training, akin to the Glauber/Kawasaki typeA/typeB dynamics, see Hohenberg and Halperin RMP1977.  
 
 
 
