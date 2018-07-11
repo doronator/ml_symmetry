@@ -257,7 +257,7 @@ Fitting parameters involves minimizing an appropriate utility function
 \begin{equation}
 \Omega({\bf \theta}) = \sum_i L(y_i, {\hat y}_i)
 \end{equation}
-where $L(y, {hat y})$ is the an appropriate cost (or loss) function, such as $(y - {hat y})^2$, and ${\hat y}_i$ are the predictions of the model
+where $L(y, {\hat y})$ is the an appropriate cost (or loss) function, such as $(y - {\hat y})^2$, and ${\hat y}_i$ are the predictions of the model
 \begin{equation}
 {\hat y}_i = f({\bf x}_i; {\bf \theta})
 \; .
@@ -284,12 +284,12 @@ Because the utility function sums over all symmetry transformations of the featu
 
 When using symmetry invariant features, we have $\forall g U(g) = 1$, and no degeneracy is forced by symmetry. The utility function will be in the trivial orbit in these cases - the utility function minimum is in general a single point in parameter space. Any degeneracy in the utility function minima will be spurious, and can be broken by any small perturbation to the training dataset. The exact same behavior is found in the physics in the behavior of eigenstates in quantum mechanics. Different eigenstates can be degenerate, and have the same energy level. If the degeneracy is because of a symmetry, then the degeneracy survives perturbations to the system . If the degeneracy is accidental (meaning not due to symmetry), then any perturbation in general will remove the degeneracy.
 
-so far we have discussed a utility function where every possible symmetry transformation of each sample is taken into account. One could imagine sampling this full set of transformed samples, rather than training on its entirety. We can model this random selection as follows
+So far we have discussed a utility function where every possible symmetry transformation of each sample is taken into account. One could imagine sampling this full set of transformed samples, rather than training on its entirety. We can model this random selection as follows
 \begin{equation}
 \Omega({\bf \theta}) = \sum_i \sum_{g \in G} \eta_{i,g} L(y_i, f(U(g) {\bf x}_i; {\bf \theta}))
 \; ,
 \end{equation}
-where $\eta_{i,g} \in {0,1}$ is a random indicator variable determining whether a certain sample will be taken into account in the training process or not. The probability for each sample to be taken into account should be equal, and therefore there is a homogeneous expectation value $\forall i, g E(\eta_{i,g}) = \mu$. This causes the expectation value of the utility function to become
+where $\eta_{i,g} \in {0,1}$ is a random indicator variable determining whether a certain sample will be taken into account in the training process or not. The probability for each sample to be taken into account should be equal, and therefore there is a homogeneous expectation value $\forall i, g \,\, E(\eta_{i,g}) = \mu$. This causes the expectation value of the utility function to become
 \begin{equation}
 E \left( \Omega({\bf \theta}) \right) = \mu \sum_i \sum_{g \in G} L(y_i, f(U(g) {\bf x}_i; {\bf \theta}))
 \; ,
@@ -297,7 +297,7 @@ E \left( \Omega({\bf \theta}) \right) = \mu \sum_i \sum_{g \in G} L(y_i, f(U(g) 
 thus reverting back to the form of Eq.~\eqref{standard_practice_fitting}.
 Much like in disorder physics, while randomness breaks symmetry for any individual instance, the expectation value restores the symmetry.
 
-To close this subsection we note that recent work on deep neural networks identified the two phases of learning\cite{shwartz1703opening}. The first phase is characterized by a descent into a valley of the utility function. The second is characterized by diffusion within the valley around the minimum, until a final minimum is settled upon. It is tempting to think that the second diffusive phase may take place in the very same shallow valley we uncover here.
+To close this subsection we note that recent work on deep neural networks identified the two phases of learning\cite{shwartz1703opening}. The first phase is characterized by a descent into a valley of the utility function. The second is characterized by diffusion within the valley, until a final minimum is settled upon. It is tempting to think that the second diffusive phase may take place in the very same shallow valley we uncover here.
 
 
 \subsection{General symmetry invariants}
