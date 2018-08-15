@@ -1,9 +1,9 @@
-\documentclass[onecolumn, nofootinbib, aps, prb, 11pt]{revtex4-1}
-%\documentclass[twoside,11pt]{article}
-%\usepackage{jmlr2e}
+%\documentclass[onecolumn, nofootinbib, aps, prb, 11pt]{revtex4-1}
+\documentclass[twoside,11pt]{article}
+\usepackage{jmlr2e}
 
 \usepackage{hyperref}
-\usepackage[pdftex]{graphicx}
+%\usepackage[pdftex]{graphicx}
 \usepackage{subfig}
 \usepackage{amsmath}
 
@@ -21,6 +21,10 @@
 	\email doronator@gmail.com \\
 	\addr San Francisco, CA, USA}
 
+\editor{}
+
+\maketitle
+
 %\author{Doron L. Bergman}
 %\affiliation{San Francisco, CA}
 %\email[E-mail me at: ]{doronator@gmail.com}
@@ -28,9 +32,6 @@
 \begin{abstract}%
 Symmetry, a central concept in understanding the laws of nature, has been used for centuries in physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a neural network for classifying handwritten digits, lacking bias terms for every neuron. We demonstrate that ignoring symmetries can have dire over-fitting consequences, and that incorporating symmetry into the model reduces over-fitting, while at the same time reducing complexity, ultimately requiring less training data, and taking less time and resources to train.
 \end{abstract}
-
-\maketitle
-
 
 
 \section{Introduction}
@@ -43,7 +44,7 @@ Symmetry, together with understanding the relevant microscopic degrees of freedo
 % symmetry has not been used in ML much
 
 In statistics and computer science, traditionally there has been far less use for symmetry than in the physical sciences,
-since the problems these fields were solving often did not posses any symmetrical structures. The machine learning community has begun to explore the uses of symmetry, but there are many more scenarios where it could prove a practical advantage. The recent emergence of convolutional neural networks applied to computer vision\cite{lecun1989generalization, lecun1999object, lecun1990handwritten, lecun1998gradient, krizhevsky2012imagenet, lee2009convolutional, lecun2015deep}, where translational symmetry of images is used to constrain the form of neural network models, is a first demonstration of the vast potential in building symmetries into machine learning models.
+since the problems these fields were solving often did not posses any symmetrical structures. The machine learning community has begun to explore the uses of symmetry, but there are many more scenarios where it could prove a practical advantage. The recent emergence of convolutional neural networks applied to computer vision~\citep{lecun1989generalization, lecun1999object, lecun1990handwritten, lecun1998gradient, krizhevsky2012imagenet, lee2009convolutional, lecun2015deep}, where translational symmetry of images is used to constrain the form of neural network models, is a first demonstration of the vast potential in building symmetries into machine learning models.
 
 % symmetry can help in ML too!
 
@@ -51,7 +52,7 @@ One of the prime challenges for any sufficiently rich model is over-fitting. The
 
 % can we find enough symmetry in ML?
 
-There are many obvious symmetries in vision problems - translation, rotations, and mirror images - essentially most portions of affine transformations\cite{gens2014deep, dieleman2016exploiting, cohen2016group, henriques2016warped}. Even some forms of approximate symmetry exist\cite{kiddonsymmetry} - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggests natural languages have an approximate word permutation invariance. This may explain why bag of word methods are often successful, despite not retaining the full information about the word order\footnote{Bag of words methods represent text by the set of words or phrases used in it.}. 
+There are many obvious symmetries in vision problems - translation, rotations, and mirror images - essentially most portions of affine transformations~\citep{gens2014deep, dieleman2016exploiting, cohen2016group, henriques2016warped}. Even some forms of approximate symmetry exist~\citep{kiddonsymmetry} - the fact that sentences in some languages are still somewhat understandable even if the words are re-arranged, suggests natural languages have an approximate word permutation invariance. This may explain why bag of word methods are often successful, despite not retaining the full information about the word order\footnote{Bag of words methods represent text by the set of words or phrases used in it.}. 
 %It is the author's belief that many symmetries may be hiding in various machine learning applications, they simply need to be thought about carefully.
 
 % Symmetry for all ... ML models
@@ -70,7 +71,7 @@ In order to demonstrate the importance and power of symmetry invariant feature m
 \section{Toy model}\label{Sec:model}
 \subsection{Neural network model}\label{Sec:dumb_NN}
 
-In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset\footnote{The original repository for this dataset\cite{Dua:2017} is \url{http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits}} available with the scikit-learn python machine learning library\cite{scikit-learn}.
+In this section we describe the neural network model used for demonstrating the utility of symmetry invariant feature maps. The neural network model will be used on the UCI ML hand-written digits dataset\footnote{The original repository for this dataset~\citep{Dua:2017} is \url{http://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits}} available with the scikit-learn python machine learning library~\citep{scikit-learn}.
 
 For the sake of simplicity, we will assume that our images are comprised of pixels with grayscale values scaled to the range $[-1,+1]$. We shall also use a hyperbolic tangent function as the nonlinear neuron model, rather than a logistic function, thus mapping the internal features of a neural network (NN) to the range of values $[-1, +1]$ as well. The neurons in this case are odd functions $\tanh(-x) = - \tanh(x)$. Finally, we shall not use any biases in any neuron in the system. Denoting the outputs from layer $n$ by $z^{(n)}_i$, the NN is built out of neurons performing the following function
 \be
@@ -88,12 +89,12 @@ p_{\alpha} = \frac{{\tilde p}_{\alpha}}{\sum_{\alpha} {\tilde p}_{\alpha} }
 \; .
 \ee
 
-It must be noted at this point that ignoring the softmax layer for the moment, a neural network with one hidden layer of arbitrary size is a universal function approximator\cite{hornik1989multilayer}. Our restriction to the squashing function $\tanh$, together with eliminating the biases, reduces the function space the NN can approximate to functions odd in the inputs - this is no longer a universal function approximator.
+It must be noted at this point that ignoring the softmax layer for the moment, a neural network with one hidden layer of arbitrary size is a universal function approximator~\citep{hornik1989multilayer}. Our restriction to the squashing function $\tanh$, together with eliminating the biases, reduces the function space the NN can approximate to functions odd in the inputs - this is no longer a universal function approximator.
 
 \subsection{Issues with symmetry}
 
 The NN model above, with just $N=3$ layers, can achieve rather high classification accuracy of the 10 digits (see Sec.~\ref{Sec:empirics} below).
-It is trained on UCI ML hand-written digits dataset\cite{Dua:2017} available with the scikit-learn python machine learning library\cite{scikit-learn} of roughly black digits on a white background.
+It is trained on UCI ML hand-written digits dataset~\citep{Dua:2017} available with the scikit-learn python machine learning library~\citep{scikit-learn} of roughly black digits on a white background.
 
 We note in passing that with the exception of the input layer to the neural network, at each level we can approximate a bias term, even in this architecture. In the input neuron layer, we take the sum of all the input grayscale values $\sum_i x_i$, and multiply it by a very large weight $w_0 \rightarrow -\infty$. As long as the the images are majority white $\sum_i x_i < 0$, and this neuron will always output $z_0^{(1))} = g\left( w_0 \sum_i x_i \right)\approx 1$. If the images are majority black, we can achieve the same effect with $w_0 \rightarrow +\infty$. Once there is a bias term available as an input to the second layer, another neuron in the 2nd layer can similarly approximate a bias term for the 3rd neuron layer, and so on throughout each subsequent layer $z_0^{(n+1)} = g\left( w_0 z_0^{(n)} \right)\approx 1$. This fact is probably why the neural network architecture, even without biases, is sufficiently general to train effectively on this dataset.
 
@@ -129,7 +130,7 @@ the constraint is saturated at $R + {\bar R} = 1$, and if the images and the inv
 
 This is not a very happy state of affairs. 
 
-The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitesimally small, and if the NN is rather shallow (in practical applications this is nearly always the case) the upper limit on the accuracy can be only infinitesimally larger than in the vanishing biases case $R + {\bar R} \leq 1 + O(\epsilon)$. If the NN is deep this argument will not hold. If one is to understand a deep NN as performing many renormalization group iterations (RG)\cite{mehta2014exact}, then the NN should be able to take an infinitesimal deviation and amplify it to a sizable deviation. A deep enough NN would be capable of using infinitesimally small biases to violate $R + {\bar R} \leq 1$ significantly, rather than infinitesimally.
+The weakness of this model stems from two sources - the lack of biases for each neuron, and the features we choose to work with. If we were to re-introduce the biases, what we have proved above no longer holds strictly, but since the accuracy is a smooth function of the biases, if all the biases are infinitesimally small, and if the NN is rather shallow (in practical applications this is nearly always the case) the upper limit on the accuracy can be only infinitesimally larger than in the vanishing biases case $R + {\bar R} \leq 1 + O(\epsilon)$. If the NN is deep this argument will not hold. If one is to understand a deep NN as performing many renormalization group iterations (RG)~\citep{mehta2014exact}, then the NN should be able to take an infinitesimal deviation and amplify it to a sizable deviation. A deep enough NN would be capable of using infinitesimally small biases to violate $R + {\bar R} \leq 1$ significantly, rather than infinitesimally.
 
 In the next section, we consider an alternative approach, where rather than re-introducing the biases, we change the features we feed to the model. In particular, we choose features that are invariant under the inversion symmetry.
 
@@ -232,7 +233,7 @@ We proceed to test the different approaches in a numerical experiment.
 
 \section{Numerical experiment}\label{Sec:empirics}
 
-The dataset we use\cite{Dua:2017} consists of $8 \times 8$ images, and is enlarged by a factor of 5 by duplicating and shifting all the images 1 pixel to the right, left, up, and down, in addition to the original images. This procedure is applied to the dataset before it is fed to any one of the models we compare here.
+The dataset we use~\citep{Dua:2017} consists of $8 \times 8$ images, and is enlarged by a factor of 5 by duplicating and shifting all the images 1 pixel to the right, left, up, and down, in addition to the original images. This procedure is applied to the dataset before it is fed to any one of the models we compare here.
 
 We compare the performance of a variety of NN models. They all share the same architecture - a fully connected 3-layer neural network model with 10 hidden neurons in the 1st layer, 5 in the second layer, and a softmax layer as the 3rd. 
 
@@ -280,7 +281,7 @@ The standard practice, taken to its logical conclusion, amounts to applying each
 \end{equation}
 where $g \in G$ denotes a sum over all the elements in the symmetry group $G$, and $U(g) {\bf x}_i$ denotes the transformation of the vector ${\bf x}_i$ under the group element $g$.
 
-The sum $\sum_{g \in G}$ renders the utility function itself invariant under any symmetry transformations ${\bf x} \rightarrow U(h) {\bf x}$. As a result, in general the minimum of the utility function will not be unique, but rather will span an entire orbit of the symmetry group, and will most likely be in the largest orbits - those of the same number of elements as the symmetry group itself. If the symmetry group is a continuous one, then the minima will form a continuous manifold. This may cause significant numerical convergence issues - the flat directions in parameter space may confuse a stopping criteria, and cause a gradient based algorithm to continue roaming parameter space rather than stop. Similar phenomena in the modeling of MRI data have been recently uncovered by Novikov et al. \onlinecite{novikov2018rotationally}. These flat directions, are akin to Goldstone modes appearing in the context of continuous symmetry breaking\cite{nambu1960quasi, goldstone1961field, goldstone1962broken}.
+The sum $\sum_{g \in G}$ renders the utility function itself invariant under any symmetry transformations ${\bf x} \rightarrow U(h) {\bf x}$. As a result, in general the minimum of the utility function will not be unique, but rather will span an entire orbit of the symmetry group, and will most likely be in the largest orbits - those of the same number of elements as the symmetry group itself. If the symmetry group is a continuous one, then the minima will form a continuous manifold. This may cause significant numerical convergence issues - the flat directions in parameter space may confuse a stopping criteria, and cause a gradient based algorithm to continue roaming parameter space rather than stop. Similar phenomena in the modeling of MRI data have been recently uncovered by \citet{novikov2018rotationally}. These flat directions, are akin to Goldstone modes appearing in the context of continuous symmetry breaking~\citep{nambu1960quasi, goldstone1961field, goldstone1962broken}.
 
 It is useful to see how the degeneracy in fitting parameter space arises explicitly, especially to understand how things change when we use symmetry invariant features.
 
@@ -306,14 +307,14 @@ E \left( \Omega({\bf \theta}) \right) = \mu \sum_i \sum_{g \in G} L(y_i, f(U(g) 
 thus reverting back to the form of Eq.~\eqref{standard_practice_fitting}.
 Much like in disorder physics, while randomness breaks symmetry for any individual instance, the expectation value restores the symmetry.
 
-To close this subsection we note that recent work on deep neural networks identified the two phases of learning\cite{shwartz1703opening}. The first phase is characterized by a descent into a valley of the utility function. The second is characterized by diffusion within the valley, until a final minimum is settled upon. It is tempting to think that the second diffusive phase may take place in the very same shallow valley we uncover here.
+To close this subsection we note that recent work on deep neural networks identified the two phases of learning~\citep{shwartz1703opening}. The first phase is characterized by a descent into a valley of the utility function. The second is characterized by diffusion within the valley, until a final minimum is settled upon. It is tempting to think that the second diffusive phase may take place in the very same shallow valley we uncover here.
 
 
 \subsection{General symmetry invariants}
 
 In this subsection we will briefly discuss a general approach towards constructing the symmetry invariant features required to effectively tackle machine learning with symmetry enforced.
 
-Using group theory terminology, every input vector space is a representation of the symmetry group. This representation is a direct sum of irreducible representations (irreps). Each irrep very naturally produces one quadratic invariant of the symmetry group - the norm within that irrep. However, these invariants alone do not generally constitute a full encoding of the information modulo the symmetry transformations. While previous work\cite{kazhdan2003rotation} using only such invariants has proven this approach useful, we feel the full potential of symmetry enforced upon machine learning models is best served when the encoding is complete, i.e. no information is lost when using symmetry invariant features alone.
+Using group theory terminology, every input vector space is a representation of the symmetry group. This representation is a direct sum of irreducible representations (irreps). Each irrep very naturally produces one quadratic invariant of the symmetry group - the norm within that irrep. However, these invariants alone do not generally constitute a full encoding of the information modulo the symmetry transformations. While previous work~\citep{kazhdan2003rotation} using only such invariants has proven this approach useful, we feel the full potential of symmetry enforced upon machine learning models is best served when the encoding is complete, i.e. no information is lost when using symmetry invariant features alone.
 
 
 \section{Conclusions}\label{Sec:conclusions}
