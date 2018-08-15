@@ -1,4 +1,7 @@
-\documentclass[twocolumn, nofootinbib, aps, prb]{revtex4-1}
+\documentclass[onecolumn, nofootinbib, aps, prb, 11pt]{revtex4-1}
+%\documentclass[twoside,11pt]{article}
+%\usepackage{jmlr2e}
+
 \usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
@@ -13,15 +16,21 @@
 \title{Symmetry constrained machine learning}
 \date{\today}
 
-\author{Doron L. Bergman}
-\affiliation{San Francisco, CA}
-\email[E-mail me at: ]{doronator@gmail.com}
+\author{
+	\name Doron L. Bergman
+	\email doronator@gmail.com \\
+	\addr San Francisco, CA, USA}
 
-\begin{abstract}
+%\author{Doron L. Bergman}
+%\affiliation{San Francisco, CA}
+%\email[E-mail me at: ]{doronator@gmail.com}
+
+\begin{abstract}%
 Symmetry, a central concept in understanding the laws of nature, has been used for centuries in physics, mathematics, and chemistry, to help make mathematical models tractable. Yet, despite its power, symmetry has not been used extensively in machine learning, until rather recently. In this article we show a general way to incorporate symmetries into machine learning models. We demonstrate this with a detailed analysis on a rather simple real world machine learning system - a neural network for classifying handwritten digits, lacking bias terms for every neuron. We demonstrate that ignoring symmetries can have dire over-fitting consequences, and that incorporating symmetry into the model reduces over-fitting, while at the same time reducing complexity, ultimately requiring less training data, and taking less time and resources to train.
 \end{abstract}
 
 \maketitle
+
 
 
 \section{Introduction}
@@ -320,10 +329,11 @@ Our examination of the fitting utility function when dealing with symmetry uncov
 In the application of machine learning to image recognition there is a vast amount of symmetry to be found. Translational invariance, mirror reflections, at least a degree of rotational invariance, scale invariance (zooming in and out), as well as changing the colors themselves while maintaining contrast between different colored pixels are all transformations under which the perception of the image ought to remain unchanged. There is much more work to be done to take full advantage of these symmetries in developing more effective and robust image recognition systems.
 
 
-\section{Acknowledgements}
-
+%\section{Acknowledgements}
+\acks{
 The author would like to thank Miles Stoudenmire, Daniel Malinow, David J. Bergman, and Dmitry S. Novikov, for useful feedback on the ideas presented in this manuscript. In particular, discussions with Dmitry S. Novikov inspired exploring the fitting parameter degeneracy
 that occurs when symmetry is not enforced upon a fitting model. The author would also like to thank the UCI machine learning repository \url{http://archive.ics.uci.edu/ml/index.php} for making the dataset used in this work available.
+}
 
 \vskip -0.2in
 
