@@ -1,0 +1,18 @@
+To the editors,
+
+We hereby submit for review our article "Symmetry constrained machine learning". We consent to review by JMLR.
+
+In this paper we explore the idea of imposing precise symmetries on a machine learning model. We propose a conceptually straightforward and general approach to achieve this goal. We use a toy problem to demonstrate how this approach can be easily implemented, and point out the dangers that can arise from not being careful about imposing symmetry on to a machine learning model.
+
+We argue that considering symmetry in the context of machine learning can expose weaknesses in machine learning systems, and can be used to guard against 
+these weaknesses. Furthermore, symmetry can help make machine learning models more compact, and robust to over-fitting, with the ability to satisfy symmetry conditions with complete certainty.
+
+The work presented in this article has not been published before in any journal.
+
+We suggest a number of possible reviewers for this article: Ypshua Bengio, Karsten Borgwardt, Koby Crammer, and Moritz Hardt.
+
+Best regards,
+Doron Bergman
+San Francisco
+
+
