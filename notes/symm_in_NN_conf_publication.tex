@@ -6,6 +6,7 @@
 \usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
+\usepackage{cite}
 
 \begin{document}
 
@@ -15,14 +16,6 @@
 
 \title{Symmetry constrained machine learning}
 \date{\today}
-
-%\author{
-%	\name Doron L. Bergman
-%	\email whatever@gmail.com \\
-%	\addr San Francisco, CA, USA}
-
-%\editor{}
-%\maketitle
 
 \author{Doron L. Bergman}
 \institute{MegaWatt Technologies LLC, San Jose, CA}
@@ -63,12 +56,6 @@ Given the benefits of combining symmetry into machine learning models, it would 
 % paper outline
 In order to demonstrate the importance and power of symmetry invariant feature maps\footnote{A feature map is a function which maps an input data vector to a vector space to be consumed directly by a machine learning model. For instance, starting with inputs $x_{1,2}$, a feature map could generate the product $x_1 x_2$.}, we consider in this paper a very simple example - recognizing hand written digits using neural networks with bias terms absent. In Sec.~\ref{Sec:model}, we describe the toy model we work with to demonstrate our ideas. In Sec.~\ref{Sec:empirics} we describe results of our empirical computer experiments confirming the mathematical theory, and demonstrating the power and ease of implementing symmetry invariant feature maps. In Sec.~\ref{Sec:general_theory} we show how fitting neural network models without symmetry invariance enforced, leads to shallow directions in the fitting parameter space. Finally we provide some closing remarks in Sec.~\ref{Sec:conclusions}.
 
-
-%Anecdotal evidence from the web that people use image mirroring to trick computer vision systems from identifying the content of the image:
-
-% https://www.quora.com/Do-videos-with-reversed-image-frames-avoid-watermark-detection-by-YouTubes-copyright-identification-system
-
-% https://www.reddit.com/r/todayilearned/comments/hqq6k/til_you_can_flipmirror_a_youtube_video_to/
 
 \section{Toy model}\label{Sec:model}
 \subsection{Neural network model}\label{Sec:dumb_NN}
@@ -345,11 +332,8 @@ that occurs when symmetry is not enforced upon a fitting model. The author would
 \vskip -0.2in
 
 %\bibliography{A-D,E-H,I-L,M-O,P-S,T-Z}
-%\bibliographystyle{plainnat}
+\bibliographystyle{spphys}
 \bibliography{NN_bib}
-%\bibliographystyle{TUPREP}
-
-
 
 \vskip 0.2in
 
