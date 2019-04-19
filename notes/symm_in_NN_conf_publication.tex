@@ -184,6 +184,7 @@ These features do not inform the machine learning model of the local nature of t
 We proceed to test the different approaches in a numerical experiment.
 
 \begin{table}
+	\begin{center}
 \begin{tabular}{l l l l | l}
 	biases & features & training set & test set & accuracy \\ 
 	\hline
@@ -203,12 +204,14 @@ We proceed to test the different approaches in a numerical experiment.
 	 &  &  & $-X_{test}$ & 0.69 \\ 
 	\hline
 \end{tabular}
+\end{center}
 \caption{Accuracy measurements of the different models, training and testing sets, with the original inputs as features. Symmetry invariance is not enforced on any of the models.}
 \label{table:results_table_no_symmetry}
 \end{table}
 
 
 \begin{table}
+	\begin{center}
 	\begin{tabular}{l l l l | l}
 		biases & features & training set & test set & accuracy \\ 
 		\hline
@@ -226,6 +229,7 @@ We proceed to test the different approaches in a numerical experiment.
 		 & $x_i x_{P(i)}$ & $X_{train}$ & $X_{test}$ & 0.82 \\	
 		\hline
 	\end{tabular}
+	\end{center}
 	\caption{Accuracy measurements of the different models, training and testing sets, with symmetry-invariant features. Symmetry invariance guarantees that the exact same results are obtained on the inverted test sets $-X_{test}$.}
 	\label{table:results_table_symmetric}
 \end{table}
