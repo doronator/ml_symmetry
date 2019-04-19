@@ -6,7 +6,6 @@
 \usepackage{hyperref}
 \usepackage[pdftex]{graphicx}
 \usepackage{subfig}
-\usepackage{amsmath}
 
 \begin{document}
 
@@ -104,7 +103,7 @@ a black background. The inverted images still represent the same digits - the gr
 
 One can test this empirically (see Sec.~\ref{Sec:empirics} below), and find that the classification accuracy is quite poor, in some cases going below the accuracy of random selection (!). We explore the source of this poor performance, and prove that it is a general effect, rather than a mere anecdote.
 
-Under the grayscale inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer (Eqs.~\eqref{softmax_1},\eqref{softmax_2}) is odd in its 
+Under the grayscale inversion symmetry, $x_i \rightarrow - x_i$, every layer except the final softmax layer (Eqs.~\ref{softmax_1},\ref{softmax_2}) is odd in its 
 input. Therefore under this symmetry we get all the neuron values flipping their sign $z^{(n)}_i \rightarrow - z^{(n)}_i$. Finally, the unnormalized probabilities transform as
 \be
 {\tilde p}_{\alpha} \rightarrow \exp\left[ - \sum_i u_{\alpha, i} z^{(N-1)}_i \right] = 1/{\tilde p}_{\alpha}
@@ -305,7 +304,7 @@ where $\eta_{i,g} \in {0,1}$ is a random indicator variable determining whether 
 E \left( \Omega({\bf \theta}) \right) = \mu \sum_i \sum_{g \in G} L(y_i, f(U(g) {\bf x}_i; {\bf \theta}))
 \; ,
 \end{equation}
-thus reverting back to the form of Eq.~\eqref{standard_practice_fitting}.
+thus reverting back to the form of Eq.~\ref{standard_practice_fitting}.
 Much like in disorder physics, while randomness breaks symmetry for any individual instance, the expectation value restores the symmetry.
 
 To close this subsection we note that recent work on deep neural networks identified the two phases of learning~\cite{shwartz1703opening}. The first phase is characterized by a descent into a valley of the utility function. The second is characterized by diffusion within the valley, until a final minimum is settled upon. It is tempting to think that the second diffusive phase may take place in the very same shallow valley we uncover here.
