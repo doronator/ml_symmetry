@@ -22,3 +22,5 @@ weaknesses in machine learning systems, and can be used to guard against these
 weaknesses. Furthermore, symmetry can help make machine learning models more 
 compact, and robust to over-fitting, with the ability to satisfy symmetry 
 conditions with complete certainty.
+
+[![Build Status](https://travis-ci.org/doronator/ml_symmetry.svg?branch=jmlr)](https://travis-ci.org/doronator/ml_symmetry)
